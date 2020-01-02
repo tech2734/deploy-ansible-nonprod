@@ -1,0 +1,22 @@
+---
+
+# Put /usr/lib/systemd/system/insights-client.service in place from template
+
+  - name: upload insights-client.service from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/insights_conf/templates/insights_conf.j2"
+      dest: /usr/lib/systemd/system/insights-client.service
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: systemd_unit_file_t
+      selevel: s0
+    register: insights_out
+
+  - name: restart daemon
+    shell: systemctl daemon-reload
+    when: insights_out is changed

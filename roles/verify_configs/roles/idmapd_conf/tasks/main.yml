@@ -1,0 +1,17 @@
+---
+
+# Put a idmapd.conf in place from template
+
+  - name: upload idmapd.conf from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/idmapd_conf/templates/abrt_conf.j2"
+      dest: /etc/idmapd.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0

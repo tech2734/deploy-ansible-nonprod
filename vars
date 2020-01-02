@@ -1,0 +1,13 @@
+DeployServer: 10.180.111.39
+DNS1: 10.16.229.90
+DNS2: 10.180.4.90
+NetMask: 255.255.255.0
+GateWay: "{{ ansible_host | ipsubnet(24) | ipaddr('network') | ipmath(1) }}"
+ActivationKey: Non-Prod-7.7
+SatelliteServer: 10.16.106.14
+DeployDir: /usr/local/ansible/deploy
+RoleDir: "{{ DeployDir }}/roles"
+ISODir: "{{ RoleDir }}/createiso/ISO/redhat-7.6-iso"
+VMImageDir: /vmimages/linuxisos
+
+# There are additional vars in roles/vm_deploy/defaults/main.yml

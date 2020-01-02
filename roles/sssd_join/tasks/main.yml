@@ -1,0 +1,69 @@
+---
+#
+# Setup system to log into Active Directory / SSSD
+#
+
+  - name: ---- MAKE SURE PREREQUISITE PACKAGES ARE INSTALLED ----
+    package:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - autofs
+      - sssd
+      - krb5-workstation
+      - adcli
+      - samba-common
+      - samba-common-tools
+      - nfs-utils
+
+  - name: ---- TEST DOMAIN MEMBERSHIP ----
+    shell: adcli testjoin
+    register: domainJoin
+    ignore_errors: yes
+
+  - name: ---- TEST MESSAGE FAIL ----
+    debug:
+      msg: Domain membership test failed.  Proceeding with domain join.
+    when: domainJoin is failed
+
+  - name: ---- TEST MESSAGE SUCCESS ----
+    debug:
+      msg: Domain membership test succeeded.  No need to join to domain at this time.
+    when: domainJoin is not failed
+
+  - name: ---- GET KERBEROS TICKET GRANTING TICKET ----
+    shell: echo -n 'L1nW.Nja1cdi.' | kinit svc-unixdeploy@CORP.WAN
+    when: domainJoin is failed
+
+  - name: ---- CREATE COMPUTER ACCOUNT ----
+    shell: sleep 5; adcli preset-computer --domain='corp.wan' {{ ansible_hostname|upper }} --os-name='RedHat-Enterprise-Linux-Server' --os-version='7' --os-service-pack="$(echo {{ ansible_distribution_version }} | awk -F. '{print $1}')" --verbose --domain-realm=CORP.WAN --domain-controller=eagle.corp.wan --login-ccache='KEYRING:persistent:0' --domain-ou="OU=Unix,OU=Servers,DC=corp,DC=wan"
+    when: domainJoin is failed
+    register: createComp
+    ignore_errors: yes
+
+  - name: ---- GET KERBEROS TICKET GRANTING TICKET AGAIN ----
+    shell: echo -n 'L1nW.Nja1cdi.' | kinit svc-unixdeploy@CORP.WAN
+    when: domainJoin is failed
+
+  - name: ---- JOIN COMPUTER TO DOMAIN ----
+    shell: sleep 5; adcli join --domain='corp.wan' --host-keytab='/etc/krb5.keytab' --computer-name={{ ansible_hostname|upper }} --os-name='RedHat-Enterprise-Linux-Server' --os-version='7' --domain-realm=CORP.WAN --domain-ou="OU=Unix,OU=Servers,DC=corp,DC=wan" --domain-controller=eagle.corp.wan --host-fqdn={{ ansible_hostname }}.corp.wan --verbose --login-ccache='KEYRING:persistent:0' --add-samba-data --show-password --show-details
+#    shell: net ads join -k
+    when: domainJoin is failed
+
+  - name: ---- MAKE SURE SSSD IS STARTED AND ENABLED ----
+    systemd:
+      name: sssd
+      state: started
+      enabled: yes
+
+  - name: ---- MAKE SURE AUTOFS IS STARTED AND ENABLED ----
+    systemd:
+      name: autofs
+      state: started
+      enabled: yes
+
+  - name: ---- END MESSAGE ----
+    debug:
+      msg: This is the end of the playbook.  If you have made it this far then most likely server is joined to AD.  Congrats!
+
+...

@@ -1,0 +1,18 @@
+---
+
+# Put /etc/resolv.conf in place from template
+
+  - name: upload /etc/resolv.conf from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/resolv_conf/templates/resolv_conf.j2"
+      dest: /etc/resolv.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: net_conf_t
+      selevel: s0
+    when: ansible_hostname not in 'sl-uokdm1t, sl-uokdm2t, sl-uokdm3t, sl-uokdi1t, sl-uokdi2t, sl-uokdi3t, sl-uokda1t, sl-uokda2t, sl-uokda3t, sl-uokda4t'

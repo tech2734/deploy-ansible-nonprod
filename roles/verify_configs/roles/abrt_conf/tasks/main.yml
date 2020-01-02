@@ -1,0 +1,18 @@
+---
+
+# Put a abrt.conf in place from template
+
+  - name: upload abrt.conf from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/abrt_conf/templates/abrt_conf.j2"
+      dest: /etc/abrt/abrt.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: abrt_etc_t
+      selevel: s0
+    when: ansible_hostname not in 'sl-bilvpa1d, sl-bilvpa2d, sl-bilvpa1i, sl-bilvpa2i, sl-bilvpa1t, sl-bilvpa2t, sl-bilrtri1d, sl-bilrtri2d, sl-bilrtri1i, sl-bilrtri2i, sl-bilrtri1t, sl-bilrtri2t'

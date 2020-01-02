@@ -1,0 +1,45 @@
+---
+
+# Put gssproxy configs in place from templates
+
+  - name: upload 24-nfs-server.conf from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/gssproxy_conf/templates/24-nfs-server_conf.j2"
+      dest: /etc/gssproxy/24-nfs-server.conf
+      owner: root
+      group: root
+      mode: '0600'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload 99-nfs-client.conf from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/gssproxy_conf/templates/99-nfs-client_conf.j2"
+      dest: /etc/gssproxy/99-nfs-client.conf
+      owner: root
+      group: root
+      mode: '0600'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload gssproxy.conf from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/gssproxy_conf/templates/gssproxy_conf.j2"
+      dest: /etc/gssproxy/gssproxy.conf
+      owner: root
+      group: root
+      mode: '0600'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0

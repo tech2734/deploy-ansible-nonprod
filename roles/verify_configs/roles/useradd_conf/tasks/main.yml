@@ -1,0 +1,17 @@
+---
+
+# Put /etc/default/useradd in place from template
+
+  - name: upload /etc/default/useradd from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/useradd_conf/templates/useradd_conf.j2"
+      dest: /etc/default/useradd
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0

@@ -1,0 +1,4 @@
+---
+
+dependencies:
+  - role: "{{ RoleDir }}/verify_configs/roles/node-exporter-install"

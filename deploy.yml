@@ -1,0 +1,26 @@
+---
+
+# This playbook will deploy a server and then apply all standard configs
+
+- name: ---- DEPLOY SERVER ----
+  import_playbook: /usr/local/ansible/deploy/createiso.yml
+
+- name: new play
+  hosts: all
+  gather_facts: false
+  roles: 
+    - role: "{{ RoleDir }}/make_kickstart"
+    - role: "{{ RoleDir }}/ip_check"
+    - role: "{{ RoleDir }}/env_check"
+    - role: "{{ RoleDir }}/vm_deploy"
+    - role: "{{ RoleDir }}/firstboot"
+    - role: "{{ RoleDir }}/update"
+    - role: "{{ RoleDir }}/reboot"
+    - role: "{{ RoleDir }}/sssd_join"
+    - role: "{{ RoleDir }}/get_cert"
+    - role: "{{ RoleDir }}/verify_configs"
+    - role: "{{ RoleDir }}/cleanup"
+
+  vars_files: /usr/local/ansible/deploy/vars
+
+...

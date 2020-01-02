@@ -1,0 +1,24 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/ganglia/gmond.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/gmond_conf/templates/gmond.conf.j2"
+      dest: /etc/ganglia/gmond.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+    register: gmond_config_modified
+
+  - name: restart the gmond service if the configuration for gmond was modified
+    systemd:
+      state: restarted
+      name: gmond
+    when: gmond_config_modified is changed

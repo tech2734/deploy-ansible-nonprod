@@ -1,0 +1,17 @@
+---
+
+# Put a aide.conf in place from template
+
+  - name: upload aide.conf from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/aide_conf/templates/aide_conf.j2"
+      dest: /etc/aide.conf
+      owner: root
+      group: root
+      mode: '0600'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0

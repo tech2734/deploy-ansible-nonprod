@@ -1,0 +1,61 @@
+---
+## This playbook will verify typical configs on Red Hat systems
+
+allow_duplicates: yes
+dependencies:
+  - { role: "{{ RoleDir }}/verify_configs/roles/cspire_repo_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'cspire_repo_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/sudoers_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'sudoers_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/chrony_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'chrony_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/rsyslog_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'rsyslog_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/puppet_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'puppet_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/snmpd_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'snmpd_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/authconfig_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'authconfig_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/abrt_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'abrt_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/aide_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'aide_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/autofs_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'autofs_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/gssproxy_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'gssproxy_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/kdump_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'kdump_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/rhsm_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'rhsm_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/issue_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'issue_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/elinks_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'elinks_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/useradd_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'useradd_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/resolv_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'resolv_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/smb_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'smb_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/insights_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'insights_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/host_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'host_conf' ] }
+#  - { role: "{{ RoleDir }}/verify_configs/roles/ssh_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'ssh_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/audit_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'audit_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/gmond_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'gmond_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/hostname_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'hostname_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/openldap_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'openldap_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/postfix_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'postfix_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/nrpe_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'nrpe_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/nsswitch_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'nsswitch_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/plymouth_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'plymouth_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/logrotate_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'logrotate_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/profile_scripts_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'profile_scripts_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/ipsec_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'ipsec_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/etc_security_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'etc_security_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/grub_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'grub_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/yum_plugins_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'yum_plugins_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/protected_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'protected_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/depmod_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'depmod_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/modprobe_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'modprobe_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/prelink_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'prelink_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/polkit_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'polkit_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/dbus_systemd_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'dbus_systemd_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/request_key_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'request_key_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/gss_mech_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'gss_mech_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/rwtab_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'rwtab_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/oddjobd_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'oddjobd_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/dconf_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'dconf_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/sssd_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'sssd_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/krb5_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'krb5_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/login.defs_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'login.defs_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/lvm_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'lvm_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/vsftpd_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'vsftpd_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/node_exporter_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'node_exporter_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/etc_sysconfig_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'etc_sysconfig_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/pam_conf", when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'", tags: [ 'pam_conf' ] }
+
+#vars_files: /usr/local/ansible/deploy/vars

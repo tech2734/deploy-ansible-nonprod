@@ -1,0 +1,16 @@
+---
+
+# Update all package installations
+
+  - name: ---- UPDATE MESSAGE ----
+    debug:
+      msg: Updating {{ inventory_hostname }}.  This might take a while...
+
+  - name: ---- YUM UPDATE ----
+    yum:
+      name: '*'
+      state: latest
+      update_cache: yes
+      exclude: '*NetworkManager*'
+
+...

@@ -1,0 +1,21 @@
+# Managed by Ansible
+
+view    systemview    included   .1.3.6.1.2.1.1
+view    systemview    included   .1.3.6.1.2.1.25.1.1
+
+syslocation SOC
+syscontact Unix <unix@cspire.com>
+sysName {{ ansible_hostname }}.corp.wan
+
+dontLogTCPWrappersConnects yes
+
+createUser cspiresnmp MD5 2Zuro3V3khuIJ7KtmesH DES 5CyYn0AxOHIHzzRud3hS
+#createUser cspiresiem MD5 oNLbL8Ks9J264uDAJvQT DES 6OCWiWF0ZUsIwkwoxvro
+rouser cspiresnmp
+rouser cspiresiem
+extend inode /root/bin/cs-snmp iNode
+extend nfs /root/bin/cs-snmp nfsCheck
+includeAllDisks 10%
+disk / 15%
+disk /boot 15%
+disk /usr/local/csapps 15%

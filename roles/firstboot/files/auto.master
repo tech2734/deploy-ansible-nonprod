@@ -1,0 +1,2 @@
+/-              auto.direct       -rw,hard,suid,intr,noatime,rsize=1048576,wsize=1048576,proto=tcp,vers=3,nodev,nonstrict
+/nfs/homes      /etc/auto.home

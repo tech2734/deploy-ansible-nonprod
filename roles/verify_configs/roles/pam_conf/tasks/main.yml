@@ -1,0 +1,145 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/pam.d/su into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/pam_conf/templates/su.j2"
+      dest: /etc/pam.d/su
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/pam.d/crond into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/pam_conf/templates/crond.j2"
+      dest: /etc/pam.d/crond
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/pam.d/sshd into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/pam_conf/templates/sshd.j2"
+      dest: /etc/pam.d/sshd
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/pam.d/system-auth-ac into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/pam_conf/templates/system-auth-ac.j2"
+      dest: /etc/pam.d/system-auth-ac
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/pam.d/postlogin-ac into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/pam_conf/templates/postlogin-ac.j2"
+      dest: /etc/pam.d/postlogin-ac
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/pam.d/password-auth-ac into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/pam_conf/templates/password-auth-ac.j2"
+      dest: /etc/pam.d/password-auth-ac
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/pam.d/fingerprint-auth-ac into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/pam_conf/templates/fingerprint-auth-ac.j2"
+      dest: /etc/pam.d/fingerprint-auth-ac
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/pam.d/smartcard-auth-ac into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/pam_conf/templates/smartcard-auth-ac.j2"
+      dest: /etc/pam.d/smartcard-auth-ac
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/pam.d/screen into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/pam_conf/templates/screen.j2"
+      dest: /etc/pam.d/screen
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/pam.d/pluto into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/pam_conf/templates/pluto.j2"
+      dest: /etc/pam.d/pluto
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+...

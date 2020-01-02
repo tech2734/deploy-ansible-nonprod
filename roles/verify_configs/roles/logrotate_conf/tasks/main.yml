@@ -1,0 +1,75 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/logrotate.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/logrotate_conf/templates/logrotate.conf.j2"
+      dest: /etc/logrotate.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/logrotate.d/aide into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/logrotate_conf/templates/aide.j2"
+      dest: /etc/logrotate.d/aide
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/logrotate.d/ansible into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/logrotate_conf/templates/ansible.j2"
+      dest: /etc/logrotate.d/ansible
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/logrotate.d/rubrik into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/logrotate_conf/templates/rubrik.j2"
+      dest: /etc/logrotate.d/rubrik
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/logrotate.d/numad into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/logrotate_conf/templates/numad.j2"
+      dest: /etc/logrotate.d/numad
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+...

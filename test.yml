@@ -1,0 +1,15 @@
+---
+
+# This playbook is for testing
+
+- name: ---- TEST PLAY ----
+  hosts: all
+  gather_facts: false
+
+  roles: 
+    - role: "{{ RoleDir }}/env_check"
+    - role: "{{ RoleDir }}/cleanup"
+
+  vars_files: /usr/local/ansible/deploy/vars
+
+...

@@ -1,0 +1,54 @@
+# /etc/postfix/main.cf  - This is the defaoult configuration file for
+# postfix.  If you need help with editing this file run "man 5 postconf"
+
+queue_directory = /var/spool/postfix
+command_directory = /usr/sbin
+daemon_directory = /usr/libexec/postfix
+data_directory = /var/lib/postfix
+mail_owner = postfix
+myhostname = {{ inventory_hostname }}
+mydomain = corp.wan
+myorigin = $myhostname.$mydomain
+inet_interfaces = localhost
+inet_protocols = all
+mydestination = $myhostname, $myorigin, localhost.$mydomain, localhost
+unknown_local_recipient_reject_code = 550
+relayhost = relay.cspire.com:25
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+debug_peer_level = 2
+debugger_command =
+         PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
+         ddd $daemon_directory/$process_name $process_id & sleep 5
+sendmail_path = /usr/sbin/sendmail.postfix
+newaliases_path = /usr/bin/newaliases.postfix
+mailq_path = /usr/bin/mailq.postfix
+setgid_group = postdrop
+html_directory = no
+manpage_directory = /usr/share/man
+sample_directory = /usr/share/doc/postfix-2.10.1/samples
+readme_directory = /usr/share/doc/postfix-2.10.1/README_FILES
+smtp_use_tls = yes
+smtpd_use_tls = yes
+smtpd_tls_security_level = encrypt
+smtpd_tls_auth_only = yes
+smtp_tls_note_starttls_offer = yes
+smtpd_tls_key_file = /etc/pki/tls/private/postfix.key
+smtpd_tls_cert_file = /etc/pki/tls/certs/postfix.pem
+smtpd_tls_dh1024_param_file = /etc/pki/tls/private/postfix.dh.param
+smtp_tls_CAfile = /etc/pki/tls/certs/ca-bundle.crt
+smtpd_tls_loglevel = 1
+smtpd_tls_session_cache_timeout = 3600s
+smtpd_tls_session_cache_database = btree:/var/lib/postfix/smtpd_tls_cache
+tls_random_source = dev:/dev/urandom
+smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+smtpd_tls_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+smtp_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+smtp_tls_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+smtp_tls_exclude_ciphers = EXP, MEDIUM, LOW, DES, 3DES, SSLv2, SSLv3, TLSv1, TLSv1.1
+smtpd_tls_exclude_ciphers = EXP, MEDIUM, LOW, DES, 3DES, SSLv2, SSLv3, TLSv1, TLSv1.1
+tls_high_cipherlist = kEECDH+aECDSA+AES:kEECDH+AES+aRSA:kEDH+aRSA+AES:!aNULL:!eNULL:!MD5:!DES:!EXP:!SEED:!IDEA:!3DES:!SSLv2:!SSLv3:!TLSv1:!TLSv1.1
+tls_medium_cipherlist = kEECDH+aECDSA+AES:kEECDH+AES+aRSA:kEDH+aRSA+AES:!aNULL:!eNULL:!MD5:!DES:!EXP:!SEED:!IDEA:!3DES:!SSLv2:!SSLv3
+smtp_tls_ciphers = high
+smtpd_tls_ciphers = high
+

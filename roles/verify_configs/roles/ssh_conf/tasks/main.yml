@@ -1,0 +1,51 @@
+---
+
+# Put a ssh_config and sshd_config into place from template
+
+  - name: upload /etc/ssh/ssh_config from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/ssh_conf/templates/ssh_config.j2"
+      dest: /etc/ssh/ssh_config
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+    register: ssh_config_modified
+
+  - name: upload /etc/ssh/sshd_config from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/ssh_conf/templates/sshd_config.j2"
+      dest: /etc/ssh/sshd_config
+      owner: root
+      group: root
+      mode: '0600'
+      force: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+    register: sshd_config_modified
+
+  - name: upload /etc/ssh/sshd_banner from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/ssh_conf/templates/sshd_banner.j2"
+      dest: /etc/ssh/sshd_banner
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_runtime_t
+      selevel: s0
+    register: sshd_banner_modified
+
+  - name: restart the sshd service when config files for sshd were changed
+    systemd:
+      state: restarted
+      name: sshd
+    when: ( sshd_config_modified is changed ) or ( ssh_config_modified is changed ) or ( sshd_banner_modified is changed )

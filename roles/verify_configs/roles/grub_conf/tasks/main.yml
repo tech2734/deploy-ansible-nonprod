@@ -1,0 +1,130 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/grub.d/00_header into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/grub_conf/templates/00_header.j2"
+      dest: /etc/grub.d/00_header
+      owner: root
+      group: root
+      mode: '0755'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/grub.d/01_users into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/grub_conf/templates/01_users.j2"
+      dest: /etc/grub.d/01_users
+      owner: root
+      group: root
+      mode: '0755'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/grub.d/10_linux into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/grub_conf/templates/10_linux.j2"
+      dest: /etc/grub.d/10_linux
+      owner: root
+      group: root
+      mode: '0755'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/grub.d/20_linux_xen into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/grub_conf/templates/20_linux_xen.j2"
+      dest: /etc/grub.d/20_linux_xen
+      owner: root
+      group: root
+      mode: '0755'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/grub.d/20_ppc_terminfo into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/grub_conf/templates/20_ppc_terminfo.j2"
+      dest: /etc/grub.d/20_ppc_terminfo
+      owner: root
+      group: root
+      mode: '0755'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/grub.d/30_os-prober into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/grub_conf/templates/30_os-prober.j2"
+      dest: /etc/grub.d/30_os-prober
+      owner: root
+      group: root
+      mode: '0755'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/grub.d/40_custom into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/grub_conf/templates/40_custom.j2"
+      dest: /etc/grub.d/40_custom
+      owner: root
+      group: root
+      mode: '0755'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/grub.d/41_custom into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/grub_conf/templates/41_custom.j2"
+      dest: /etc/grub.d/41_custom
+      owner: root
+      group: root
+      mode: '0755'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/grub.d/00_tuned into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/grub_conf/templates/00_tuned.j2"
+      dest: /etc/grub.d/00_tuned
+      owner: root
+      group: root
+      mode: '0755'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+

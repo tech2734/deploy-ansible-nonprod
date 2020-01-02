@@ -1,0 +1,50 @@
+## /etc/sudoers  -  This file controls which commands a user can run with super-user privileges.
+
+## Defaults specification
+Defaults                              !insults
+Defaults                              !visiblepw
+Defaults                              env_reset
+Defaults                              log_output
+Defaults                              always_set_home
+Defaults                              lecture            = never
+Defaults                              secure_path        = "/usr/sbin:/usr/bin:/sbin:/bin"
+Defaults                              env_keep           = "LC_IDENTIFICATION LC_MEASUREMENT "
+Defaults                              env_keep          += "LC_PAPER LC_TELEPHONE LANG LC_NAME "
+Defaults                              env_keep          += "LC_MESSAGES LC_MONETARY LC_NUMERIC "
+Defaults                              env_keep          += "LC_CTYPE LC_TIME LC_ALL LANGUAGE LINGUAS "
+Defaults                              env_keep          += "LC_ADDRESS LC_COLLATE XDG_SESSION_COOKIE "
+Defaults!/usr/bin/sudoreplay !log_output
+Defaults!/sbin/reboot !log_output
+
+## Cmnd alias specification
+Cmnd_Alias                            NSU                = /bin/su
+
+Cmnd_Alias                            NEXPOSE            = /sbin/ifconfig, /sbin/sysctl, /usr/bin/java, \
+                                                           /bin/rpm, /sbin/chkconfig, /usr/sbin/dmidecode
+
+Cmnd_Alias                            NSHELLS            = /usr/bin/tclsh, /usr/bin/tclsh8.5, \
+                                                           /bin/tcsh, /usr/bin/bash, /usr/bin/csh, \
+                                                           /bin/bash, /bin/csh, /bin/ksh, /bin/ksh93, \
+                                                           /bin/sh, /bin/zsh, /usr/bin/ksh, /bin/sash, \
+                                                           /usr/bin/rbash, /usr/bin/rksh, /usr/bin/sh, \
+                                                           /usr/bin/tclsh8.4, /usr/bin/tcsh, /usr/bin/zsh
+
+Cmnd_Alias                            CS_SUDO_RULES      = /bin/su - csapp, \
+                                                           /bin/systemctl start cspire-*.service, \
+                                                           /bin/systemctl stop cspire-*.service, \
+                                                           /bin/systemctl restart cspire-*.service, \
+                                                           /bin/systemctl status cspire-*.service, \
+                                                           /bin/systemctl enable cspire-*.service, \
+                                                           /bin/systemctl disable cspire-*.service, \
+                                                           /bin/journalctl -u cspire-*.service
+
+## User privilege specification
+root                                  ALL=(ALL)            ALL
+svc-nexposeunix                       ALL=(ALL)            !NSHELLS, !NSU, NEXPOSE
+
+## Group privilege specification
+%Linux-Admins-Nonprod                 ALL=(ALL)            ALL
+%Linux-DBA-Nonprod                    ALL=(ALL)            /bin/su - oracle
+%Linux-DBA-Nonprod                    ALL=(ALL) NOPASSWD:  /ora_home/app/oracle/product/*/*/root.sh, \
+                                                           /ora_home/app/oraInventory/orainstRoot.sh
+%Linux-SI-Nonprod                     ALL=(ALL)            CS_SUDO_RULES

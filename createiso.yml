@@ -1,0 +1,31 @@
+---
+
+# Create an ISO
+ - hosts: all
+   serial: 1
+   gather_facts: false
+   vars_files: /usr/local/ansible/deploy/vars
+ 
+   tasks:
+
+     - name: ---- ISOLINUX BLOCK ----
+       block:
+         - name: ---- COPY ISOLINUX TEMPLATE ----
+           template:
+             src: "{{ RoleDir }}/createiso/templates/isolinux.cfg.j2"
+             dest: "{{ ISODir }}/isolinux/isolinux.cfg"
+           delegate_to: sl-udeploy1t
+
+         - name: ---- CREATE BOOT ISO MESSAGE ----
+           debug:
+             msg: Creating boot ISO for {{ inventory_hostname }}.  Please wait...
+
+         - name: ---- CREATE ISO ----
+           shell: >
+                  cd {{ ISODir }}; ls {{ VMImageDir }} | grep -q {{ inventory_hostname }}.iso
+                  && echo -n ISOEXISTS
+                  || /bin/genisoimage -U -r -v -T -J -joliet-long -V 'RHEL-7.6 Server.x86_64' -volset 'RHEL-7.6 Server.x86_64' -A 'RHEL-7.6 Server.x86_64' -b 'isolinux/isolinux.bin' -c 'isolinux/boot.cat' -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -eltorito-boot 'images/efiboot.img' -no-emul-boot -o "{{ VMImageDir }}/{{ inventory_hostname }}.iso" .
+           register: iso_exists
+           changed_when: iso_exists.stdout != 'ISOEXISTS'
+           delegate_to: sl-udeploy1t
+...

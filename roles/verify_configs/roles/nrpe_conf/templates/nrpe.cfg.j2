@@ -1,0 +1,43 @@
+# /usr/local/nagios/etc/nrpe.cfg  -  Configuration file for nrpe
+
+log_facility=daemon
+server_port=5666
+nrpe_user=nagios
+nrpe_group=nagios
+allowed_hosts=127.0.0.1,10.16.128.104
+dont_blame_nrpe=1
+allow_bash_command_substitution=0
+debug=0
+command_timeout=60
+connection_timeout=300
+ssl_version=TLSv1.2+
+ssl_cipher_list=TLSv1.2:!aNULL:!eNULL:!SSLv2:!LOW:!EXP:!RC4:!MD5:!SSLv2:!SSLv3:!TLSv1:!TLSv1.1:@STRENGTH
+ssl_use_adh=1
+ssl_cacert_file=/etc/ssl/certs/CSpire-Enterprise-Root-CA-01.pem
+ssl_cert_file=/etc/ssl/private/{{ inventory_hostname }}.pem
+ssl_privatekey_file=/etc/ssl/private/{{ inventory_hostname }}.key
+ssl_client_certs=1
+ssl_logging=0xff
+
+# COMMAND DEFINITIONS
+command[check_cs]=/usr/local/nagios/libexec/check_sar_cs.pl $ARG1$
+command[check_ufh]=/usr/local/nagios/libexec/check_sar_ufh.pl $ARG1$
+command[check_log]=/usr/local/nagios/libexec/check_log3.pl $ARG1$
+command[check_runq]=/usr/local/nagios/libexec/check_sar_runq.pl
+command[check_sock]=/usr/local/nagios/libexec/check_sar_sock.pl
+command[check_lsof]=/usr/local/nagios/libexec/check_lsof.pl $ARG1$
+command[check_disk]=/usr/local/nagios/libexec/check_disk $ARG1$
+command[check_disk1]=/usr/local/nagios/libexec/check_disk -w $ARG1$
+command[check_swap]=/usr/local/nagios/libexec/check_swap $ARG1$
+command[check_load]=/usr/local/nagios/libexec/check_load $ARG1$
+command[check_nrpe]=/usr/local/nagios/libexec/$ARG1$
+command[check_nrpe3]=/usr/local/nagios/libexec/check_nrpe3 $ARG1$
+command[check_sysctl]=/usr/local/nagios/libexec/check_sysctl $ARG1$
+command[check_process]=/usr/local/nagios/libexec/check_process.pl $ARG1$
+command[check_filesize]=/usr/local/nagios/libexec/check_file_size.pl $ARG1$
+command[check_nfs_stats]=/usr/local/nagios/libexec/check_sar_nfsc.pl
+command[check_filecount]=/usr/local/nagios/libexec/check_dir_filecnt.sh $ARG1$
+command[check_disk_stats]=/usr/local/nagios/libexec/check_sar_disk.pl $ARG1$
+command[check_cpu_utilization]=/usr/local/nagios/libexec/check_sar_cpu.pl
+command[check_mountpoints]=/usr/local/nagios/libexec/check_mountpoints.sh $ARG1$
+

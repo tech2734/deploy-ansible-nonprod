@@ -1,0 +1,34 @@
+default install
+timeout 1
+display boot.msg
+
+menu clear
+menu background splash.png
+menu title Red Hat Enterprise Linux 7.7
+menu vshift 8
+menu rows 18
+menu margin 8
+menu helpmsgrow 15
+menu tabmsgrow 13
+menu color border * #00000000 #00000000 none
+menu color sel 0 #ffffffff #00000000 none
+menu color title 0 #ff7ba3d0 #00000000 none
+menu color tabmsg 0 #ff3a6496 #00000000 none
+menu color unsel 0 #84b8ffff #00000000 none
+menu color hotsel 0 #84b8ffff #00000000 none
+menu color hotkey 0 #ffffffff #00000000 none
+menu color help 0 #ffffffff #00000000 none
+menu color scrollbar 0 #ffffffff #ff355594 none
+menu color timeout 0 #ffffffff #00000000 none
+menu color timeout_msg 0 #ffffffff #00000000 none
+menu color cmdmark 0 #84b8ffff #00000000 none
+menu color cmdline 0 #ffffffff #00000000 none
+menu tabmsg Press Tab for full configuration options on menu items.
+menu separator # insert an empty line
+menu separator # insert an empty line
+
+label install
+  menu label ^Install Red Hat Enterprise Linux 7.7
+  kernel vmlinuz
+  append initrd=initrd.img ks=https://{{ DeployServer }}/pub/kickstarts/{{ inventory_hostname }}.ks noverifyssl hostname={{ inventory_hostname }}.corp.wan bootproto=static device=eth0 ip={{ ansible_host }} gateway={{ GateWay }} nameserver={{ DNS1 }} nameserver={{ DNS2 }} netmask={{ NetMask }} noipv6 activate inst.stage2=hd:LABEL=RHEL-7.6\x20Server.x86_64 showopts quiet
+menu end

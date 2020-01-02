@@ -1,0 +1,19 @@
+---
+
+# This playbook will apply all standard config to an already existing server
+
+- name: --- STANDARD CONFIG ----
+  hosts: all
+  gather_facts: false
+
+  roles: 
+    - role: "{{ RoleDir }}/firstboot"
+    - role: "{{ RoleDir }}/update"
+    - role: "{{ RoleDir }}/reboot"
+    - role: "{{ RoleDir }}/sssd_join"
+    - role: "{{ RoleDir }}/get_cert"
+    - role: "{{ RoleDir }}/verify_configs"
+
+  vars_files: /usr/local/ansible/deploy/vars
+
+...

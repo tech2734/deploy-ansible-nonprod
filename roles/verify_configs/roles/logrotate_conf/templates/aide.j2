@@ -1,0 +1,9 @@
+/var/log/aide/*.log {
+  daily
+  missingok
+  rotate 14
+  compress
+  delaycompress
+  copytruncate
+  minsize 100k
+}

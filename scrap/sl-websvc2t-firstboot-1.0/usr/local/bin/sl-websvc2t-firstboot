@@ -1,0 +1,3567 @@
+#!/bin/bash
+cat << 'ENDOFRESOLVCONF' > '/etc/resolv.conf'
+# /etc/resolv.conf
+
+domain corp.wan
+nameserver 10.16.229.90
+nameserver 10.180.4.90
+options timeout:2 attempts:1 rotate
+ENDOFRESOLVCONF
+
+
+test -d '/etc/info' || mkdir -p -m 0755 '/etc/info'
+test -d '/root/.ssh' || mkdir -p -m 0700 '/root/.ssh'
+test -d '/root/bin' || mkdir -p -m 0700 '/root/bin'
+test -d '/etc/ssl/private' || mkdir -p -m 0755 '/etc/ssl/private'
+test -d '/etc/pki/tls/private' || mkdir -p -m '/etc/pki/tls/private'
+test -d '/net/prodcd/cds1' || mkdir -p -m 0755  '/net/prodcd/cds1'
+test -d '/nfs/homes' || mkdir -p -m 0755  '/nfs/homes'
+test -d '/etc/audit/rules.d' || mkdir -p -m 0755 '/etc/audit/rules.d'
+test -d '/home/oracle' || mkdir -p -m 0755 '/home/oracle'
+test -d '/home/oracle/.ssh' || mkdir -m 0700 '/home/oracle/.ssh'
+test -d '/home/csapp' || mkdir -p -m 0755 '/home/csapp'
+test -d '/home/csapp/.ssh' || mkdir -m 0700 '/home/csapp/.ssh'
+test -d '/usr/local/csapps' || mkdir -p -m 0755 '/usr/local/csapps'
+
+if [ $(egrep "^oracle:" "/etc/passwd" | wc -l) -lt 1 ]; then
+  echo 'oracle:x:150:150:Oracle Database User:/home/oracle:/bin/ksh' >> '/etc/passwd'
+fi
+
+if [ $(egrep "^oracle:" "/etc/shadow" | wc -l) -lt 1 ]; then
+  echo 'oracle:!!:17521:0:99999:7:::' >> '/etc/shadow'
+fi
+
+if [ $(egrep "^dba_local:" "/etc/group" | wc -l) -lt 1 ]; then
+  echo 'dba_local:x:150:oracle' >> '/etc/group'
+fi
+
+if [ $(egrep "^csapp:" '/etc/passwd' | wc -l) -lt 1 ]; then
+  echo 'csapp:x:213:213:csapp User ID:/home/csapp:/bin/bash' >> '/etc/passwd'
+fi
+
+if [ $(egrep "^csapp:" '/etc/shadow' | wc -l) -lt 1 ]; then
+  echo 'csapp:!!:17521:0:99999:7:::' >> '/etc/shadow'
+fi
+
+if [ $(egrep "^csapp:" '/etc/group' | wc -l) -lt 1 ]; then
+  echo 'csappl:x:213:csapp' >> '/etc/group'
+fi
+
+'/sbin/pwconv'
+'/usr/bin/ssh-keygen' -t ed25519 -C 'oracle@sl-websvc2t' -f '/home/oracle/.ssh/oracle_ed25519' -N ''
+'/usr/bin/ssh-keygen' -t ecdsa -b 521 -C 'oracle@sl-websvc2t' -f '/home/oracle/.ssh/oracle_ecdsa' -N ''
+'/usr/bin/ssh-keygen' -t rsa -b 4096 -C 'oracle@sl-websvc2t' -f '/home/oracle/.ssh/oracle_rsa' -N ''
+'/usr/bin/ssh-keygen' -t ed25519 -C 'root@sl-websvc2t' -f '/root/.ssh/sl-websvc2t_ed25519' -N ''
+'/usr/bin/ssh-keygen' -t ecdsa -b 521 -C 'root@sl-websvc2t' -f '/root/.ssh/sl-websvc2t_ecdsa' -N ''
+'/usr/bin/ssh-keygen' -t rsa -b 4096 -C 'root@sl-websvc2t' -f '/root/.ssh/sl-websvc2t_rsa' -N ''
+'/usr/bin/ssh-keygen' -t ed25519 -C 'csapp@sl-websvc2t' -f '/home/csapp/.ssh/csapp_ed25519' -N ''
+'/usr/bin/ssh-keygen' -t ecdsa -b 521 -C 'csapp@sl-websvc2t' -f '/home/csapp/.ssh/csapp_ecdsa' -N ''
+'/usr/bin/ssh-keygen' -t rsa -b 4096 -C 'csapp@sl-websvc2t' -f '/home/csapp/.ssh/csapp_rsa' -N ''
+cat '/home/oracle/.ssh/oracle_ed25519.pub' >> '/home/oracle/.ssh/authorized_keys'
+cat '/home/oracle/.ssh/oracle_ecdsa.pub' >> '/home/oracle/.ssh/authorized_keys'
+cat '/home/oracle/.ssh/oracle_rsa.pub' >> '/home/oracle/.ssh/authorized_keys'
+cat '/home/csapp/.ssh/csapp_ed25519.pub' >> '/home/csapp/.ssh/authorized_keys'
+cat '/home/csapp/.ssh/csapp_ecdsa.pub' >> '/home/csapp/.ssh/authorized_keys'
+cat '/home/csapp/.ssh/csapp_rsa.pub' >> '/home/csapp/.ssh/authorized_keys'
+
+cat << 'ENDOFORACLESSHCONFIG' > '/home/oracle/.ssh/config'
+IdentityFile=/home/oracle/.ssh/oracle_ed25519
+IdentityFile=/home/oracle/.ssh/oracle_ecdsa
+IdentityFile=/home/oracle/.ssh/oracle_rsa
+IdentitiesOnly yes
+ENDOFORACLESSHCONFIG
+
+cat << 'ENDOFCSAPPSSHCONFIG' > '/home/csapp/.ssh/config'
+IdentityFile=/home/csapp/.ssh/csapp_ed25519
+IdentityFile=/home/csapp/.ssh/csapp_ecdsa
+IdentityFile=/home/csapp/.ssh/csapp_rsa
+IdentitiesOnly yes
+ENDOFCSAPPSSHCONFIG
+
+chown -R oracle:oracle '/home/oracle'
+chmod -R g+s '/home/oracle'
+chmod '0600' '/home/oracle/.ssh/authorized_keys'
+chown -R csapp:csapp '/home/csapp'
+chmod -R g+s '/home/csapp'
+chmod '0600' '/home/csapp/.ssh/authorized_keys'
+chmod 0755 '/usr/local/csapps'
+chown -R csapp:csapp '/usr/local/csapps'
+chmod -R g+s '/usr/local/csapps'
+
+cat << 'ENDOFEJECTCDROMSERVICE' > '/usr/lib/systemd/system/eject-cdrom.service'
+[Unit]
+Description=Ejects CDROM after build is complete
+ConditionPathExists=/usr/local/bin/eject-cdrom
+
+After=network.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /usr/local/bin/eject-cdrom
+
+[Install]
+WantedBy=multi-user.target
+ENDOFEJECTCDROMSERVICE
+
+chmod 0644 '/usr/lib/systemd/system/eject-cdrom.service'
+systemctl enable eject-cdrom.service
+
+cat << 'ENDOFEJECTCDROMSCRIPT' > '/usr/local/bin/eject-cdrom'
+#!/bin/bash
+
+'/usr/bin/yum' -y -x NetworkManager* upgrade
+
+if [ $(blkid /dev/sr0 | wc -l) -gt 0 ]; then
+  eject /dev/sr0
+fi
+
+if [ -f '/usr/lib/systemd/system/eject-cdrom.service' ]; then
+  systemctl disable eject-cdrom.service
+  rm -f '/usr/lib/systemd/system/eject-cdrom.service'
+  systemctl daemon-reload
+fi
+
+test -x '/usr/local/bin/eject-cdrom' && rm -f '/usr/local/bin/eject-cdrom'
+
+exit 0
+ENDOFEJECTCDROMSCRIPT
+
+chmod 0755 '/usr/local/bin/eject-cdrom'
+
+for SVC in $(systemctl list-unit-files | awk '{print $1}' | grep "NetworkManager"); do
+  systemctl disable "${SVC}"
+  systemctl stop "${SVC}"
+done
+
+'/usr/bin/yum' -y erase $(/usr/bin/rpm -qa --queryformat "%{NAME}\n" | grep "NetworkManager")
+'/usr/bin/yum' -y erase 'Red_Hat_Enterprise_Linux-Release_Notes-7-en-US' 'alsa-firmware' 'alsa-tools-firmware' 'btrfs-progs' 'desktop-file-utils' 'dhclient' 'dhcp-common' 'dhcp-libs' 'docbook-dtds' 'docbook-style-xsl' 'dracut-network' 'elfutils-devel' 'elfutils-libelf-devel' 'emacs-filesystem' 'gdbm-devel' 'git ' 'ivtv-firmware' 'iwl100-firmware' 'iwl1000-firmware' 'iwl105-firmware' 'iwl135-firmware' 'iwl2000-firmware' 'iwl2030-firmware' 'iwl3160-firmware' 'iwl3945-firmware' 'iwl4965-firmware' 'iwl5000-firmware' 'iwl6000-firmware' 'iwl6000g2a-firmware' 'iwl6000g2b-firmware' 'iwl6050-firmware' 'iwl7260-firmware' 'iwl7265-firmware' 'kexec-tools ' 'keyutils-libs-devel' 'krb5-devel' 'libcom_err-devel' 'libdb-devel' 'libgnome-keyring' 'libselinux-devel' 'libsepol-devel' 'libverto-devel' 'lm_sensors-devel' 'net-snmp-devel' 'net-snmp-perl' 'open-vm-tools-desktop' 'openssl-devel' 'pcre-devel' 'perl-ExtUtils-Install' 'perl-ExtUtils-MakeMaker' 'perl-ExtUtils-ParseXS' 'perl-Git' 'perl-devel' 'redhat-support-lib-python' 'redhat-support-tool' 'rhn-check' 'rhn-client-tools' 'rhn-setup' 'rhnsd' 'snappy' 'wpa_supplicant' 'xdg-utils' 'xmlto' 'xz-devel' 'zlib-devel'
+'/usr/bin/wget' --no-check-certificate 'https://10.180.111.39/pub/repos/cspire-content-for-redhat-7.7/repodata/repomd.xml.key' -O '/etc/pki/rpm-gpg/CSpire-GPG-Key'
+'/usr/bin/wget' --no-check-certificate 'https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7' -O '/etc/pki/rpm-gpg/EPEL-7-Key'
+rpm --import '/etc/pki/rpm-gpg/CSpire-GPG-Key'
+rpm --import '/etc/pki/rpm-gpg/EPEL-7-Key'
+rpm -Uvh --force --replacefiles --replacepkgs 'https://jl-sat1m.corp.wan/pub/katello-ca-consumer-latest.noarch.rpm'
+if [ $(rpm -qa | grep katello-ca-consumer | wc -l) -eq '0' ]; then
+  cd /tmp/
+  '/bin/wget' 'https://10.16.106.14/pub/katello-ca-consumer-latest.noarch.rpm' --no-check-certificate
+  rpm -Uvh --force --replacefiles --replacepkgs /tmp/katello-ca-consumer-latest.noarch.rpm
+fi
+  
+rm -rf '/var/cache/yum'
+'/usr/bin/yum' clean all
+'/usr/bin/yum' history sync
+'/usr/bin/wget' --no-check-certificate 'https://10.16.108.57/pub/repos/deploy-only-repo/cspire-satellite-bootstrap.repo' -O '/etc/yum.repos.d/cspire-satellite-bootstrap.repo'
+'/usr/bin/yum' repolist
+
+for PKG in 'redhat-release-server' 'gofer' 'katello-agent' 'katello-host-tools' 'katello-host-tools-fact-plugin' 'pulp-rpm-handlers' 'python-gofer' 'python-gofer-proton' 'python-isodate' 'python-pulp-agent-lib' 'python-pulp-common' 'python-pulp-rpm-common' 'python-qpid-proton' 'python-rhsm' 'python-rhsm-certificates' 'qpid-proton-c' 'subscription-manager'; do 
+  if [ $(rpm -qa "${PKG}" | wc -l) -eq '0' ]; then
+    '/usr/bin/yum' -y --nogpgcheck install "${PKG}"
+  fi
+done
+
+rm -f '/etc/yum.repos.d/cspire-satellite-bootstrap.repo'
+rm -rf '/var/cache/yum'
+'/usr/bin/yum' clean all
+hostname sl-websvc2t
+echo 'sl-websvc2t' > '/etc/hostname'
+
+cat << 'ENDOFROOTSSHCONFIG' > '/root/.ssh/config'
+IdentityFile /root/.ssh/sl-websvc2t_ed25519
+IdentityFile /root/.ssh/sl-websvc2t_ecdsa
+IdentityFile /root/.ssh/sl-websvc2t_rsa
+IdentitiesOnly yes
+ENDOFROOTSSHCONFIG
+
+cat << 'ENDOFAUTODIRECT' > '/etc/auto.direct'
+/net/prodcd/cds1  sl-fs1t:/tunix_cds1
+ENDOFAUTODIRECT
+
+cat << 'ENDOFAUTOHOME' > '/etc/auto.home'
+*   -rw,hard,suid,intr,noatime,rsize=1048576,wsize=1048576,proto=tcp,vers=3,nodev,nonstrict  sl-fs1t:/tunix_uhomes/&
+ENDOFAUTOHOME
+
+cat << 'ENDOFAUTHORIZEDKEYS' > '/root/.ssh/authorized_keys'
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILH58h6Oc5AaL90kyWGfMTBbZ2ZvYIv/JBioL9dKZj5g root@sl-uansible1t
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINLV3RbMZIAVh0cUf8MR1EuFSVt/MYfTEEvuxbjJODwV root@sl-udeploy1t
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIrmeB3GQHSe9W8jl/La8SRxa7n0HWH1Z5eexaJLzsI5 root@csnbumstr
+ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAF0JkQEEzNn5i13vlbi7eoJgHiTIF/Mas3PfPviU05Yb30FbLcteZ1kp65AsWfe0ScL68M0sRxO9Exnw7E8ddeA3ACb1ZbcQIJq5Ygc3BRFc3fqLMYIS/8PYaSUega4/7phCnf01bPt8JGCC0dh1fOZX9kY26A8Zg3ej68bpEFVIGh5+w== root@sl-uansible1t
+ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBACGewSw/SHh64ErlneLIwHNlgHTRSSPlI49Em0lGB+++K0RSX0eYP+gGYTjG1ZZJkujahZE2IN1kpbbx8fGW5AdkwDHFWnac9wHu2coVD6e9h2WEh7XPqsT9fJq2eoXMWoypDoKEYnrSY6cy9Pz7oRRu+lm8rne8+ZwpI9Zpcm/MBd+Yg== root@sl-udeploy1t
+ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBACHiCSiSzY1k3vjvIl4PObHyiWAMsf9hywAxCQEt1h0g0mngTF8I+xH4auxTEUr7z7bAA0lYPkfSrj+QT/ET5RzdgEQ4eGbM+FI5fjM0dr9c3j7+hInQaohkixoqj9LsXmMroKtQ3vkNFEzSIkzR2MPiE+cQf4n+2nBhUOvgJ2/MwFTLA== root@csnbumstr
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCdJdH9NUCDsY1CSfeudYxO2GsraSYs0m1xwIC3/dgAKGJoD5tPtmfzo96eZHCSwmmBL5pvWa0TvP8D4VevM9DwqDnyGWJ31ayrq+ZaEid9qTjNOL+2eRRuhvOsVeDWzS3+XZCyCHslMcX0R/uQ80UkMWhDUyrpP7ikE8O4aCPKTbbqxBtAW2mfw2jym7jd8U6bu/05kKNHFuOcgnjl8B6WRiaqnLS6Sg0t3AnTEDoY7DzF74KMrrDBuL2gkgS25L3QL7qHS0n/XDGMxdq7I7YFOXY+kUJ4YInuFu2zms6L6hPECHePU1iTSSHMwtekHjwxFShcdrsk8m3aSV4a96+0EU9RBDg0wzMyYc+svLb47zTZjZJgEIhvf1O9xsTll8JyHy7UvhimDGCCWBUNDTiKEvd9EYwSFBLAJ+6yX2qes4eMvxgwjWR44J66QMP+m2IA/GxxXfWAAWqHgkhGTOgvIUumP8Wgf+HM2sDzE00L7JkDDytRJa3memMZXeAc1xAgigYXR6gbo1aIPkajuScMd3odTVJHo3m4/PMNqtH7yeVBLDAfLNprDxyFkPAG9Ykt7zakkZVVVJxABkJC6uu5MK/duVZ5Avyvn/PJ+aN33Rz7jY+lJbS/LhiS5JJ9jMxRM1AVXIvROBPzK4/xUQPfA66I8fDqi6xanMj6VC8tzQ== root@sl-uansible1t
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC/pcmwXj7gSP9HfvxCQLfy7jCGEtVrElq4OMTlU3oB9LfQQcW7qTn3GEFs0x8psiLQmmaTMS9oq8fIdPdM3zqrCZTgahV1qpWcZeRmwp9FiR2WObzA7e7cEiVYmAmyhnFPBbZ0047YSN2cA39FCGE/1m/RjdvQasnDGNDxFriMN1KkEhfVegad4SKCLGk3dUAtZwIhrvADKKqxvJJDG+STENQuu/+St8dKm0FC9bajP+LY34AYhAKGDsuNvjYVD91BrRRSZrJYmvqzMtt7UkFsBSYNzqocHOn6eitUWzzaDPeGwbrOOicJa0ldhdDv4RD+LeT2EGkX4RqJR4pgaAdP7DXRAmiC4LV+IT9zdJ4d+xS/qNnJD+b2qWd/Kb4phEioyHS5hrqQvZdZW/CIu/GATZkQ723VorAcljM3k2kWSTkIOxQvlqvSuUuutWOeOvMQyYDf+s128qPDycJzEAt5sAExf/ZVl9AcL7hK82556TOUbGfcHszx1pglxm925ygOYdtpI0C8A4+EOTr6IiYcfXhDO5mIXJJ0ZsROxmN8UrwLFKcmsK+d1JZOwcoP8T1qWMNzeiM1w22WeOqTakpz9tAQx1a4D3yH057BHgs/c0eAmOgu9SK15cO8lA4QIPjKYg5F+Bfbeuea8hIiEn46e5uL1zW5rxcE1a4N7VhsRQ== root@sl-udeploy1t
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC07kTSMwmIlzFjBer7oRCrgp9fOpiarvxbwXGLfwqv27S5cuAvMfTbDRzph3uJbOXWqQbnx+m/619B3dREoAI0kr+4FaQRwavgxSR6tVk0ZFIfJHUfyn8ZMUhQb3f0vgWLggpBPOvA7pIX68gmSrWEM9bSViT2HLsTX5wrKg7IxAUWU0JMRncq/1owAbb5l9/XUHvA6p6lRYAGgVQetiywcqzL8h6pLvaRkbcDSY1XTcrZIKuAXGUVZ711IOw/wKagHL268kZr4bYRHOFtlBg9SmtJZd+rQ2GS+6b7Dt7KNDztS5gOHhU+QpanC/ETT7qR77sbg2tXbFmMadC8GpBaMMRMJX5T4nvOBcc8d3jJNAFY7JFopAj4JAUx+0hAO/jxNNLAABjkMNXRczckfwjolDwhMkz+B5FlVTz/2daDWWuoazmwAA8GLUYJX20Ol2XcC7j0DQuyILi36GkOU039FBQgVFre0xkkfdENuYIDV3U+Sjs9KKHmYar/zPB6dK6ixSa9odCbiqIUpw7XoT2Gkd0etMa3h1DtYcvz+nmk02aQbu7h2tlBhHWq1Ev9e98dwYFVzhX429L2LodwDEU2TAqkABlT0hpz9rViI0/GHm37eUdJd37AQrtDfSyxPj6B1K6Ykb6TnK7xmZMGx8raEBmzFOm4oeLN/FLJDLmJxw== root@csnbumstr
+ENDOFAUTHORIZEDKEYS
+
+cat << 'ENDOFSUDOERS' > '/etc/sudoers'
+## /etc/sudoers  -  This file controls which commands a user can run with super-user privileges.
+
+## Defaults specification
+Defaults                            !insults
+Defaults                            !visiblepw
+Defaults                            env_reset
+Defaults                            log_output
+Defaults                            always_set_home
+Defaults                            lecture            = never
+Defaults                            secure_path        = "/usr/sbin:/usr/bin:/sbin:/bin"
+Defaults                            env_keep           = "LC_IDENTIFICATION LC_MEASUREMENT "
+Defaults                            env_keep          += "LC_PAPER LC_TELEPHONE LANG LC_NAME "
+Defaults                            env_keep          += "LC_MESSAGES LC_MONETARY LC_NUMERIC "
+Defaults                            env_keep          += "LC_CTYPE LC_TIME LC_ALL LANGUAGE LINGUAS "
+Defaults                            env_keep          += "LC_ADDRESS LC_COLLATE XDG_SESSION_COOKIE "
+Defaults!/usr/bin/sudoreplay !log_output
+Defaults!/sbin/reboot !log_output
+
+## Cmnd alias specification
+Cmnd_Alias                          NSU                = /bin/su
+
+Cmnd_Alias                          NEXPOSE            = /sbin/ifconfig, /sbin/sysctl, /usr/bin/java, \
+                                                         /bin/rpm, /sbin/chkconfig, /usr/sbin/dmidecode
+
+Cmnd_Alias                          NSHELLS            = /usr/bin/tclsh, /usr/bin/tclsh8.5, \
+                                                         /bin/tcsh, /usr/bin/bash, /usr/bin/csh, \
+                                                         /bin/bash, /bin/csh, /bin/ksh, /bin/ksh93, \
+                                                         /bin/sh, /bin/zsh, /usr/bin/ksh, /bin/sash, \
+                                                         /usr/bin/rbash, /usr/bin/rksh, /usr/bin/sh, \
+                                                         /usr/bin/tclsh8.4, /usr/bin/tcsh, /usr/bin/zsh
+
+## User privilege specification
+root                                ALL=(ALL)            ALL
+svc-nexposeunix                     ALL=(ALL)            !NSHELLS, !NSU, NEXPOSE
+
+## Group privilege specification
+%Linux-Admins-Nonprod               ALL=(ALL)            ALL
+%Linux-Admins-Prod                  ALL=(ALL)            ALL
+%csapp                              ALL=(ALL)            /bin/su - csapp
+%dba_local                          ALL=(ALL)            /bin/su - oracle
+%dba_local                          ALL=(ALL) NOPASSWD:  /ora_home/app/oracle/product/*/*/root.sh
+%dba_local                          ALL=(ALL) NOPASSWD:  /ora_home/app/oraInventory/orainstRoot.sh
+%Linux-WEBAPPS-Nonprod              ALL=(ALL)            /bin/su - csapp
+%Linux-Web-Contractors-Nonprod      ALL=(ALL)            /bin/su - csapp
+ENDOFSUDOERS
+
+cat << 'ENDOFHOSTDATA' > '/etc/info/hostdata'
+ENDOFHOSTDATA
+
+cat << 'ENDOFVMKEY' > '/etc/pki/tls/private/postfix.key'
+-----BEGIN PRIVATE KEY-----
+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
+6HrodXphjmtUEk1rFNZXAAjopGeFaEY=
+-----END PRIVATE KEY-----
+ENDOFVMKEY
+
+cat << 'ENDOFVMCERT' > '/etc/pki/tls/certs/postfix.pem'
+-----BEGIN CERTIFICATE-----
+MIIGIzCCBQugAwIBAgITewAAB4y6ojK9OkEMGwABAAAHjDANBgkqhkiG9w0BAQsF
+ADBuMQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcT
+CVJpZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMSQwIgYDVQQDExtDU3BpcmUgRW50
+ZXJwcmlzZSBJbnQgQ0EtMDEwHhcNMTkxMjIzMTQzMDM1WhcNMjEwOTA5MjA0MTI4
+WjCBoDELMAkGA1UEBhMCVVMxFDASBgNVBAgTC01pc3Npc3NpcHBpMRIwEAYDVQQH
+EwlSaWRnZWxhbmQxDzANBgNVBAoTBkNTcGlyZTEXMBUGA1UECxMOSW5mcmFzdHJ1
+Y3R1cmUxHTAbBgNVBAMTFHNsLXdlYnN2YzJ0LmNvcnAud2FuMR4wHAYJKoZIhvcN
+AQkBFg91bml4QGNzcGlyZS5jb20wggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIK
+AoICAQDlrM2+7BlzNayoOYhDQ/32UeOoB6di9g+v241ipvo3ccEwZBdzl31kHNa2
+pkIGO5bREu6tbzZPlfu9nhlBO6eOP/gcE0ZN2xriR062Ib9WgbiEj4fwZPgUvXo+
+A9jPyKsD2yj+cjuoSkXijFePLCTc8A0ehJXJLifvCFaGhB4FewJLh/h+SJTz3IIx
+fj+RAL6UlxyjENkrwgaEyZoEQcVLPG2oy3jjbSZqiComPBYVtQ9SrjWNh6qo+9+h
+atwLE59kakA2CX1JKYdzr9hayOmc7c15JgPNxnvTug7RBg47hcj6kcGL4/7OPEKN
+G8KN8YYBYDRW+C3gY8wHOumDPYwpcfVLYUVX8q1I+sF0RiUMy05zdKxTCg6ueDEY
+GuRpfaMuWt+B7oNQrTSJwi0fpgHlyCDpOUh63F8DeAbGRrbNrtZoGXSQWW4VIYvN
+zDZVMKiNRNWyuKmlZx/ErxwaczR4f3AxtXWiqa2ghKAXE9eJBdW5XdnSUHr3I9aU
+mDvxXJuLVPyaWSGgJyfNzuXW8zQ62Mn50fNKUFbqe7kAgaDuWfjWB/PIso/xfH0n
+cUbbV9jyYUVsiUOjjVssNMsKXuISimX/ewgBYp1EV1d/NH8Ba1CpZBSz0V0Zuo6h
+xVNBqoTUZSD4W/NFElHg89d9ITnP05kaQ+i9Uz1VurXlljEViQIDAQABo4IBhTCC
+AYEwLAYDVR0RBCUwI4IUc2wtd2Vic3ZjMnQuY29ycC53YW6CC3NsLXdlYnN2YzJ0
+MB0GA1UdDgQWBBQ9j91fAdHcq2X3PRieWCZBhzERizAfBgNVHSMEGDAWgBRpaqTu
+lEWKimRKBhiL3weWAJQ1CTBCBgNVHR8EOzA5MDegNaAzhjFodHRwOi8vaW50MDEt
+cGtpLmNvcnAud2FuL2NybC9jcy1lbnQtaW50LWNhMDEuY3JsME0GCCsGAQUFBwEB
+BEEwPzA9BggrBgEFBQcwAoYxaHR0cDovL2ludDAxLXBraS5jb3JwLndhbi9jcnQv
+Y3MtZW50LWludC1jYTAxLmNydDAOBgNVHQ8BAf8EBAMCBaAwPAYJKwYBBAGCNxUH
+BC8wLQYlKwYBBAGCNxUIiKlZgePABYepgRuE3PMvgqq0QnWHpa83gc38aAIBZAIB
+ETATBgNVHSUEDDAKBggrBgEFBQcDATAbBgkrBgEEAYI3FQoEDjAMMAoGCCsGAQUF
+BwMBMA0GCSqGSIb3DQEBCwUAA4IBAQCGdnbwArW4Ykq9I3Lu9pXRb+UJtD/wXJkf
+fHCBJ7WmqUIbzuCWLQrWB9DsYe/Q5JXvXV0Idd+T91k0pd2pexGjDVBCw4aG1Pkx
+/qT9EXfXT9ef2AaW0+1T4Fnxx7hgLy3zSWA9osEkC018k6gQdsmG7LijfU4oxyK7
+QkdFNKSe/ybmzeSHot+aQn4VjoXvYyNIJYHlYeUocbqbn4FTp7BsdFgtVz67tjHq
+C8/XlLIws5op4c84ZBn4fm/y6fgJbGDYM/DjvRW03xsMjhTW4U/SmbP32z8fHuO0
+NB6vxi6vmPps0Hk4twAA7vbHuFtirrH2qcN1IAiIPKpTeIrQmPDP
+-----END CERTIFICATE-----
+ENDOFVMCERT
+
+cat << 'ENDOFVMCHAIN' > '/etc/ssl/private/sl-websvc2t-ca-chain.pem'
+subject=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/OU=Infrastructure/CN=sl-websvc2t.corp.wan/emailAddress=unix@cspire.com
+issuer=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Int CA-01
+-----BEGIN CERTIFICATE-----
+MIIGIzCCBQugAwIBAgITewAAB4y6ojK9OkEMGwABAAAHjDANBgkqhkiG9w0BAQsF
+ADBuMQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcT
+CVJpZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMSQwIgYDVQQDExtDU3BpcmUgRW50
+ZXJwcmlzZSBJbnQgQ0EtMDEwHhcNMTkxMjIzMTQzMDM1WhcNMjEwOTA5MjA0MTI4
+WjCBoDELMAkGA1UEBhMCVVMxFDASBgNVBAgTC01pc3Npc3NpcHBpMRIwEAYDVQQH
+EwlSaWRnZWxhbmQxDzANBgNVBAoTBkNTcGlyZTEXMBUGA1UECxMOSW5mcmFzdHJ1
+Y3R1cmUxHTAbBgNVBAMTFHNsLXdlYnN2YzJ0LmNvcnAud2FuMR4wHAYJKoZIhvcN
+AQkBFg91bml4QGNzcGlyZS5jb20wggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIK
+AoICAQDlrM2+7BlzNayoOYhDQ/32UeOoB6di9g+v241ipvo3ccEwZBdzl31kHNa2
+pkIGO5bREu6tbzZPlfu9nhlBO6eOP/gcE0ZN2xriR062Ib9WgbiEj4fwZPgUvXo+
+A9jPyKsD2yj+cjuoSkXijFePLCTc8A0ehJXJLifvCFaGhB4FewJLh/h+SJTz3IIx
+fj+RAL6UlxyjENkrwgaEyZoEQcVLPG2oy3jjbSZqiComPBYVtQ9SrjWNh6qo+9+h
+atwLE59kakA2CX1JKYdzr9hayOmc7c15JgPNxnvTug7RBg47hcj6kcGL4/7OPEKN
+G8KN8YYBYDRW+C3gY8wHOumDPYwpcfVLYUVX8q1I+sF0RiUMy05zdKxTCg6ueDEY
+GuRpfaMuWt+B7oNQrTSJwi0fpgHlyCDpOUh63F8DeAbGRrbNrtZoGXSQWW4VIYvN
+zDZVMKiNRNWyuKmlZx/ErxwaczR4f3AxtXWiqa2ghKAXE9eJBdW5XdnSUHr3I9aU
+mDvxXJuLVPyaWSGgJyfNzuXW8zQ62Mn50fNKUFbqe7kAgaDuWfjWB/PIso/xfH0n
+cUbbV9jyYUVsiUOjjVssNMsKXuISimX/ewgBYp1EV1d/NH8Ba1CpZBSz0V0Zuo6h
+xVNBqoTUZSD4W/NFElHg89d9ITnP05kaQ+i9Uz1VurXlljEViQIDAQABo4IBhTCC
+AYEwLAYDVR0RBCUwI4IUc2wtd2Vic3ZjMnQuY29ycC53YW6CC3NsLXdlYnN2YzJ0
+MB0GA1UdDgQWBBQ9j91fAdHcq2X3PRieWCZBhzERizAfBgNVHSMEGDAWgBRpaqTu
+lEWKimRKBhiL3weWAJQ1CTBCBgNVHR8EOzA5MDegNaAzhjFodHRwOi8vaW50MDEt
+cGtpLmNvcnAud2FuL2NybC9jcy1lbnQtaW50LWNhMDEuY3JsME0GCCsGAQUFBwEB
+BEEwPzA9BggrBgEFBQcwAoYxaHR0cDovL2ludDAxLXBraS5jb3JwLndhbi9jcnQv
+Y3MtZW50LWludC1jYTAxLmNydDAOBgNVHQ8BAf8EBAMCBaAwPAYJKwYBBAGCNxUH
+BC8wLQYlKwYBBAGCNxUIiKlZgePABYepgRuE3PMvgqq0QnWHpa83gc38aAIBZAIB
+ETATBgNVHSUEDDAKBggrBgEFBQcDATAbBgkrBgEEAYI3FQoEDjAMMAoGCCsGAQUF
+BwMBMA0GCSqGSIb3DQEBCwUAA4IBAQCGdnbwArW4Ykq9I3Lu9pXRb+UJtD/wXJkf
+fHCBJ7WmqUIbzuCWLQrWB9DsYe/Q5JXvXV0Idd+T91k0pd2pexGjDVBCw4aG1Pkx
+/qT9EXfXT9ef2AaW0+1T4Fnxx7hgLy3zSWA9osEkC018k6gQdsmG7LijfU4oxyK7
+QkdFNKSe/ybmzeSHot+aQn4VjoXvYyNIJYHlYeUocbqbn4FTp7BsdFgtVz67tjHq
+C8/XlLIws5op4c84ZBn4fm/y6fgJbGDYM/DjvRW03xsMjhTW4U/SmbP32z8fHuO0
+NB6vxi6vmPps0Hk4twAA7vbHuFtirrH2qcN1IAiIPKpTeIrQmPDP
+-----END CERTIFICATE-----
+
+subject=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Int CA-01
+issuer=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Root CA-01
+-----BEGIN CERTIFICATE-----
+MIIErDCCA5SgAwIBAgITSAAAAAMQe24ZVr0kVgAAAAAAAzANBgkqhkiG9w0BAQsF
+ADBvMQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcT
+CVJpZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMSUwIwYDVQQDExxDU3BpcmUgRW50
+ZXJwcmlzZSBSb290IENBLTAxMB4XDTE2MDkwOTIwMzEyOFoXDTIxMDkwOTIwNDEy
+OFowbjELMAkGA1UEBhMCVVMxFDASBgNVBAgTC01pc3Npc3NpcHBpMRIwEAYDVQQH
+EwlSaWRnZWxhbmQxDzANBgNVBAoTBkNTcGlyZTEkMCIGA1UEAxMbQ1NwaXJlIEVu
+dGVycHJpc2UgSW50IENBLTAxMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC
+AQEAszG6CIzlLrCnwnwWj6VbnSeTOwgvbckfW5ZLboRSl9JSSJDuYFoJ3tEqmngs
+WYE3/2CgwYQFytL4oN7RZZNMvUjuyGVFBouITl/A/Wp7mSXY/3boSidfILM3GT4Z
+/XBpQAV39RNsPQtqVAVpK6OJihgQWQomnLe86jRvFvoL+GmvnoiTchIQtKEwyCea
+YUVRmbTpm+R1UTGhxhWci7XIP7jYR+wNI08FOfO+nkHpvyDsUPnj6EfC8wHvjs8y
+CIKILGZPLyYUy7+vwBgq7L6gLoNe3/1/yRniDUVwbGr819mjSLbpJHgNCGOuXkXR
+f+GiOzqtBq0agdo5142yBuKowwIDAQABo4IBQDCCATwwEAYJKwYBBAGCNxUBBAMC
+AQEwIwYJKwYBBAGCNxUCBBYEFNavOKWmfmmvkXLzRAV2KF2oPIx+MB0GA1UdDgQW
+BBRpaqTulEWKimRKBhiL3weWAJQ1CTAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMA
+QTALBgNVHQ8EBAMCAYYwEgYDVR0TAQH/BAgwBgEB/wIBADAfBgNVHSMEGDAWgBQH
+6qOl2iYRyL4RuuSHQjVJEk1c2TA9BgNVHR8ENjA0MDKgMKAuhixodHRwOi8vcGtp
+LmNvcnAud2FuL2NybC9jcy1lbnQtcm9vdC1jYTAxLmNybDBIBggrBgEFBQcBAQQ8
+MDowOAYIKwYBBQUHMAKGLGh0dHA6Ly9wa2kuY29ycC53YW4vY3J0L2NzLWVudC1y
+b290LWNhMDEuY3J0MA0GCSqGSIb3DQEBCwUAA4IBAQAYnBsTCFWfzJSJ8Gk2RHuC
+J3nABh4W4M0fUj09ZIHcqyEJ8ToHx9E/dfXrBfxyX8V8bU7xGBbJ7wncGwEg5f6L
+XCdszVo5uRom4Zbl73q2dG/T13/HB6R1YGmYHVKAcwBKozqhD5QgVU5BbMd3soEK
+bVO8rI+R88MssQ3V3wBlSdwhyFfibSQb2LPIOL3ymkagvelKELVhmtQB45zJ6s2X
+CgLUQFKminlK+ahD0uiMHlP/Eo/g+xU2HqjYp0qVUxanWyUf5u8XfpnCRR7jafWM
+t2sq2ASN7BsBNFFKllrL83q+SBW11SnReP3kXPjwSATWPvEx4rds6JIvS+N2E8Vh
+-----END CERTIFICATE-----
+
+subject=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Root CA-01
+issuer=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Root CA-01
+-----BEGIN CERTIFICATE-----
+MIIMATCCCumgAwIBAgIQMUb49lv+gYxKH6YMXmhNXjANBgkqhkiG9w0BAQsFADBv
+MQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcTCVJp
+ZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMSUwIwYDVQQDExxDU3BpcmUgRW50ZXJw
+cmlzZSBSb290IENBLTAxMB4XDTE2MDkwOTE0MzIyMVoXDTI2MDkwOTE0NDIyMVow
+bzELMAkGA1UEBhMCVVMxFDASBgNVBAgTC01pc3Npc3NpcHBpMRIwEAYDVQQHEwlS
+aWRnZWxhbmQxDzANBgNVBAoTBkNTcGlyZTElMCMGA1UEAxMcQ1NwaXJlIEVudGVy
+cHJpc2UgUm9vdCBDQS0wMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
+AO3jASbX+aNjuGUyUo/chAjNjGNeGaUusS7iiuH7XQ4U6Vpol7WRV7Q8LWz2B54R
+DNtee7uOJw9pnpO2nHjcoF61GAsItWseM2iw3OlKB9q9uJXsmVR5P4Rjk1iHEUbI
+ILuAOFk2KALILYObwhpQG24LvcZXYfwMclOS+Spvku0LPZ7MRdUF9zw7JjZoKziW
+t+hPKHwB4Nxx1DhWlmK7sjZtGwk2zpqlQoU5/1Zef8b8L/m8W4NHhBmzkTgb7WZr
+PosfFin2WfiEXLJ7MdEnOPLloE9L95QoWDHQZJB+jUt9uS1Nknj3NGWsRp5dr7NN
+7I8Btx/eYJujpDHgYV+KPvECAwEAAaOCCJcwggiTMAsGA1UdDwQEAwIBhjASBgNV
+HRMBAf8ECDAGAQH/AgEBMB0GA1UdDgQWBBQH6qOl2iYRyL4RuuSHQjVJEk1c2TAQ
+BgkrBgEEAYI3FQEEAwIBADCCCD0GA1UdIASCCDQwgggwMIIILAYGKQEBAQEBMIII
+IDCCCBwGCCsGAQUFBwICMIIIDh6CCAoAVABoAGkAcwAgAGMAbwBtAHAAdQB0AGUA
+cgAgAHMAeQBzAHQAZQBtACwAIABpAG4AYwBsAHUAZABpAG4AZwAgAGEAbABsACAA
+cgBlAGwAYQB0AGUAZAAgAGUAcQB1AGkAcABtAGUAbgB0ACwAIABuAGUAdAB3AG8A
+cgBrAHMALAAgAGEAbgBkACAAbgBlAHQAdwBvAHIAawAgAGQAZQB2AGkAYwBlAHMA
+IABhAHIAZQAgAHAAcgBvAHYAaQBkAGUAZAAgAG8AbgBsAHkAIABmAG8AcgAgAGEA
+dQB0AGgAbwByAGkAegBlAGQAIABDACAAUwBwAGkAcgBlACAAYgB1AHMAaQBuAGUA
+cwBzACAAdQBzAGUALgAgACAAQwAgAFMAcABpAHIAZQAgAGMAbwBtAHAAdQB0AGUA
+cgAgAHMAeQBzAHQAZQBtAHMAIABtAGEAeQAgAGIAZQAgAG0AbwBuAGkAdABvAHIA
+ZQBkACAAZgBvAHIAIABhAGwAbAAgAGwAYQB3AGYAdQBsACAAcAB1AHIAcABvAHMA
+ZQBzACwAIABpAG4AYwBsAHUAZABpAG4AZwAgAHQAbwAgAGUAbgBzAHUAcgBlACAA
+dABoAGEAdAAgAHQAaABlAGkAcgAgAHUAcwBlACAAaQBzACAAYQB1AHQAaABvAHIA
+aQB6AGUAZAAsACAAZgBvAHIAIABtAGEAbgBhAGcAZQBtAGUAbgB0ACAAbwBmACAA
+dABoAGUAIABzAHkAcwB0AGUAbQAsACAAdABvACAAZgBhAGMAaQBsAGkAdABhAHQA
+ZQAgAHAAcgBvAHQAZQBjAHQAaQBvAG4AIABhAGcAYQBpAG4AcwB0ACAAdQBuAGEA
+dQB0AGgAbwByAGkAegBlAGQAIABhAGMAYwBlAHMAcwAsACAAYQBuAGQAIAB0AG8A
+IAB2AGUAcgBpAGYAeQAgAHMAZQBjAHUAcgBpAHQAeQAgAHAAcgBvAGMAZQBkAHUA
+cgBlAHMALAAgAHMAdQByAHYAaQB2AGEAYgBpAGwAaQB0AHkALAAgAGEAbgBkACAA
+bwBwAGUAcgBhAHQAaQBvAG4AYQBsACAAcwBlAGMAdQByAGkAdAB5AC4AIAAgAE0A
+bwBuAGkAdABvAHIAaQBuAGcAIABpAG4AYwBsAHUAZABlAHMAIABhAGMAdABpAHYA
+ZQAgAGEAbgBkACAAcABhAHMAcwBpAHYAZQAgAGMAaABlAGMAawBzACAAYgB5ACAA
+YQB1AHQAaABvAHIAaQB6AGUAZAAgAEMAIABTAHAAaQByAGUAIABlAG4AdABpAHQA
+aQBlAHMAIAB0AG8AIAB0AGUAcwB0ACwAIABvAHIAIAB2AGUAcgBpAGYAeQAgAHQA
+aABlACAAaABlAGEAbAB0AGgAIABhAG4AZAAgAHMAZQBjAHUAcgBpAHQAeQAgAG8A
+ZgAgAHQAaABpAHMAIABzAHkAcwB0AGUAbQAuACAAIABEAHUAcgBpAG4AZwAgAG0A
+bwBuAGkAdABvAHIAaQBuAGcALAAgAGkAbgBmAG8AcgBtAGEAdABpAG8AbgAgAG0A
+YQB5ACAAYgBlACAAZQB4AGEAbQBpAG4AZQBkACwAIAByAGUAYwBvAHIAZABlAGQA
+LAAgAGMAbwBwAGkAZQBkACAAYQBuAGQAIAB1AHMAZQBkACAAZgBvAHIAIABhAHUA
+dABoAG8AcgBpAHoAZQBkACAAcAB1AHIAcABvAHMAZQBzAC4AIAAgAFUAcwBlACAA
+bwBmACAAdABoAGkAcwAgAEMAIABTAHAAaQByAGUAIABjAG8AbQBwAHUAdABlAHIA
+IABzAHkAcwB0AGUAbQAsACAAYQB1AHQAaABvAHIAaQB6AGUAZAAsACAAbwByACAA
+dQBuAGEAdQB0AGgAbwByAGkAegBlAGQALAAgAGMAbwBuAHMAdABpAHQAdQB0AGUA
+cwAgAGMAbwBuAHMAZQBuAHQAIAB0AG8AIABtAG8AbgBpAHQAbwByAGkAbgBnACAA
+bwBmACAAdABoAGkAcwAgAHMAeQBzAHQAZQBtAC4AIAAgAFUAbgBhAHUAdABoAG8A
+cgBpAHoAZQBkACAAdQBzAGUAIABtAGEAeQAgAHMAdQBiAGoAZQBjAHQAIAB5AG8A
+dQAgAHQAbwAgAGMAcgBpAG0AaQBuAGEAbAAgAHAAcgBvAHMAZQBjAHUAdABpAG8A
+bgAuACAAIABFAHYAaQBkAGUAbgBjAGUAIABvAGYAIAB1AG4AYQB1AHQAaABvAHIA
+aQB6AGUAZAAgAHUAcwBlACAAYwBvAGwAbABlAGMAdABlAGQAIABkAHUAcgBpAG4A
+ZwAgAG0AbwBuAGkAdABvAHIAaQBuAGcAIABtAGEAeQAgAGIAZQAgAHUAcwBlAGQA
+IABmAG8AcgAgAGEAZABtAGkAbgBpAHMAdAByAGEAdABpAHYAZQAsACAAYwByAGkA
+bQBpAG4AYQBsACwAIABvAHIAIABvAHQAaABlAHIAIABhAGQAdgBlAHIAcwBlACAA
+YQBjAHQAaQBvAG4ALgAgACAAVQBzAGUAIABvAGYAIAB0AGgAaQBzACAAcwB5AHMA
+dABlAG0AIABjAG8AbgBzAHQAaQB0AHUAdABlAHMAIABjAG8AbgBzAGUAbgB0ACAA
+dABvACAAbQBvAG4AaQB0AG8AcgBpAG4AZwAgAGYAbwByACAAdABoAGUAcwBlACAA
+cAB1AHIAcABvAHMAZQBzAC4wDQYJKoZIhvcNAQELBQADggEBANoXbn354is3hLS4
+Z7Cll0ofQqyIe2yn4VvUf4AJfUyFskV3REUHXXo1oTEpBjUShNdMlNJsmrtCEgC2
+5w/HINgO2tBsxeTjmHxLB2VCQ0faqNhmrK1AQRTq0qVG5mRfD5nDj/M49ahcR2in
+/chpJe05gf1e7uBkVcggTM1M0XIcI9WHZGbCRrS24O/bHQnKkukwXV2WVlzwWi1v
+xNuj0R2fFcpHOrHd468XOVFFelAQCiH4ExwVswLW85rpf4udWENcP+3IDRt1K9tL
+DLWBfZKY1atu8d9ChdB5vdWg0lZBaCaBkshQmRVrHbLPTV1UHFOxkpxqoTV4noNB
+7EGLSbA=
+-----END CERTIFICATE-----
+
+ENDOFVMCHAIN
+
+cat << 'ENDOFVMP7B' > '/etc/ssl/private/sl-websvc2t.p7b'
+-----BEGIN CERTIFICATE-----
+MIIXBwYJKoZIhvcNAQcCoIIW+DCCFvQCAQExADALBgkqhkiG9w0BBwGgghbcMIIG
+IzCCBQugAwIBAgITewAAB4y6ojK9OkEMGwABAAAHjDANBgkqhkiG9w0BAQsFADBu
+MQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcTCVJp
+ZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMSQwIgYDVQQDExtDU3BpcmUgRW50ZXJw
+cmlzZSBJbnQgQ0EtMDEwHhcNMTkxMjIzMTQzMDM1WhcNMjEwOTA5MjA0MTI4WjCB
+oDELMAkGA1UEBhMCVVMxFDASBgNVBAgTC01pc3Npc3NpcHBpMRIwEAYDVQQHEwlS
+aWRnZWxhbmQxDzANBgNVBAoTBkNTcGlyZTEXMBUGA1UECxMOSW5mcmFzdHJ1Y3R1
+cmUxHTAbBgNVBAMTFHNsLXdlYnN2YzJ0LmNvcnAud2FuMR4wHAYJKoZIhvcNAQkB
+Fg91bml4QGNzcGlyZS5jb20wggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoIC
+AQDlrM2+7BlzNayoOYhDQ/32UeOoB6di9g+v241ipvo3ccEwZBdzl31kHNa2pkIG
+O5bREu6tbzZPlfu9nhlBO6eOP/gcE0ZN2xriR062Ib9WgbiEj4fwZPgUvXo+A9jP
+yKsD2yj+cjuoSkXijFePLCTc8A0ehJXJLifvCFaGhB4FewJLh/h+SJTz3IIxfj+R
+AL6UlxyjENkrwgaEyZoEQcVLPG2oy3jjbSZqiComPBYVtQ9SrjWNh6qo+9+hatwL
+E59kakA2CX1JKYdzr9hayOmc7c15JgPNxnvTug7RBg47hcj6kcGL4/7OPEKNG8KN
+8YYBYDRW+C3gY8wHOumDPYwpcfVLYUVX8q1I+sF0RiUMy05zdKxTCg6ueDEYGuRp
+faMuWt+B7oNQrTSJwi0fpgHlyCDpOUh63F8DeAbGRrbNrtZoGXSQWW4VIYvNzDZV
+MKiNRNWyuKmlZx/ErxwaczR4f3AxtXWiqa2ghKAXE9eJBdW5XdnSUHr3I9aUmDvx
+XJuLVPyaWSGgJyfNzuXW8zQ62Mn50fNKUFbqe7kAgaDuWfjWB/PIso/xfH0ncUbb
+V9jyYUVsiUOjjVssNMsKXuISimX/ewgBYp1EV1d/NH8Ba1CpZBSz0V0Zuo6hxVNB
+qoTUZSD4W/NFElHg89d9ITnP05kaQ+i9Uz1VurXlljEViQIDAQABo4IBhTCCAYEw
+LAYDVR0RBCUwI4IUc2wtd2Vic3ZjMnQuY29ycC53YW6CC3NsLXdlYnN2YzJ0MB0G
+A1UdDgQWBBQ9j91fAdHcq2X3PRieWCZBhzERizAfBgNVHSMEGDAWgBRpaqTulEWK
+imRKBhiL3weWAJQ1CTBCBgNVHR8EOzA5MDegNaAzhjFodHRwOi8vaW50MDEtcGtp
+LmNvcnAud2FuL2NybC9jcy1lbnQtaW50LWNhMDEuY3JsME0GCCsGAQUFBwEBBEEw
+PzA9BggrBgEFBQcwAoYxaHR0cDovL2ludDAxLXBraS5jb3JwLndhbi9jcnQvY3Mt
+ZW50LWludC1jYTAxLmNydDAOBgNVHQ8BAf8EBAMCBaAwPAYJKwYBBAGCNxUHBC8w
+LQYlKwYBBAGCNxUIiKlZgePABYepgRuE3PMvgqq0QnWHpa83gc38aAIBZAIBETAT
+BgNVHSUEDDAKBggrBgEFBQcDATAbBgkrBgEEAYI3FQoEDjAMMAoGCCsGAQUFBwMB
+MA0GCSqGSIb3DQEBCwUAA4IBAQCGdnbwArW4Ykq9I3Lu9pXRb+UJtD/wXJkffHCB
+J7WmqUIbzuCWLQrWB9DsYe/Q5JXvXV0Idd+T91k0pd2pexGjDVBCw4aG1Pkx/qT9
+EXfXT9ef2AaW0+1T4Fnxx7hgLy3zSWA9osEkC018k6gQdsmG7LijfU4oxyK7QkdF
+NKSe/ybmzeSHot+aQn4VjoXvYyNIJYHlYeUocbqbn4FTp7BsdFgtVz67tjHqC8/X
+lLIws5op4c84ZBn4fm/y6fgJbGDYM/DjvRW03xsMjhTW4U/SmbP32z8fHuO0NB6v
+xi6vmPps0Hk4twAA7vbHuFtirrH2qcN1IAiIPKpTeIrQmPDPMIIErDCCA5SgAwIB
+AgITSAAAAAMQe24ZVr0kVgAAAAAAAzANBgkqhkiG9w0BAQsFADBvMQswCQYDVQQG
+EwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcTCVJpZGdlbGFuZDEP
+MA0GA1UEChMGQ1NwaXJlMSUwIwYDVQQDExxDU3BpcmUgRW50ZXJwcmlzZSBSb290
+IENBLTAxMB4XDTE2MDkwOTIwMzEyOFoXDTIxMDkwOTIwNDEyOFowbjELMAkGA1UE
+BhMCVVMxFDASBgNVBAgTC01pc3Npc3NpcHBpMRIwEAYDVQQHEwlSaWRnZWxhbmQx
+DzANBgNVBAoTBkNTcGlyZTEkMCIGA1UEAxMbQ1NwaXJlIEVudGVycHJpc2UgSW50
+IENBLTAxMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAszG6CIzlLrCn
+wnwWj6VbnSeTOwgvbckfW5ZLboRSl9JSSJDuYFoJ3tEqmngsWYE3/2CgwYQFytL4
+oN7RZZNMvUjuyGVFBouITl/A/Wp7mSXY/3boSidfILM3GT4Z/XBpQAV39RNsPQtq
+VAVpK6OJihgQWQomnLe86jRvFvoL+GmvnoiTchIQtKEwyCeaYUVRmbTpm+R1UTGh
+xhWci7XIP7jYR+wNI08FOfO+nkHpvyDsUPnj6EfC8wHvjs8yCIKILGZPLyYUy7+v
+wBgq7L6gLoNe3/1/yRniDUVwbGr819mjSLbpJHgNCGOuXkXRf+GiOzqtBq0agdo5
+142yBuKowwIDAQABo4IBQDCCATwwEAYJKwYBBAGCNxUBBAMCAQEwIwYJKwYBBAGC
+NxUCBBYEFNavOKWmfmmvkXLzRAV2KF2oPIx+MB0GA1UdDgQWBBRpaqTulEWKimRK
+BhiL3weWAJQ1CTAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMAQTALBgNVHQ8EBAMC
+AYYwEgYDVR0TAQH/BAgwBgEB/wIBADAfBgNVHSMEGDAWgBQH6qOl2iYRyL4RuuSH
+QjVJEk1c2TA9BgNVHR8ENjA0MDKgMKAuhixodHRwOi8vcGtpLmNvcnAud2FuL2Ny
+bC9jcy1lbnQtcm9vdC1jYTAxLmNybDBIBggrBgEFBQcBAQQ8MDowOAYIKwYBBQUH
+MAKGLGh0dHA6Ly9wa2kuY29ycC53YW4vY3J0L2NzLWVudC1yb290LWNhMDEuY3J0
+MA0GCSqGSIb3DQEBCwUAA4IBAQAYnBsTCFWfzJSJ8Gk2RHuCJ3nABh4W4M0fUj09
+ZIHcqyEJ8ToHx9E/dfXrBfxyX8V8bU7xGBbJ7wncGwEg5f6LXCdszVo5uRom4Zbl
+73q2dG/T13/HB6R1YGmYHVKAcwBKozqhD5QgVU5BbMd3soEKbVO8rI+R88MssQ3V
+3wBlSdwhyFfibSQb2LPIOL3ymkagvelKELVhmtQB45zJ6s2XCgLUQFKminlK+ahD
+0uiMHlP/Eo/g+xU2HqjYp0qVUxanWyUf5u8XfpnCRR7jafWMt2sq2ASN7BsBNFFK
+llrL83q+SBW11SnReP3kXPjwSATWPvEx4rds6JIvS+N2E8VhMIIMATCCCumgAwIB
+AgIQMUb49lv+gYxKH6YMXmhNXjANBgkqhkiG9w0BAQsFADBvMQswCQYDVQQGEwJV
+UzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcTCVJpZGdlbGFuZDEPMA0G
+A1UEChMGQ1NwaXJlMSUwIwYDVQQDExxDU3BpcmUgRW50ZXJwcmlzZSBSb290IENB
+LTAxMB4XDTE2MDkwOTE0MzIyMVoXDTI2MDkwOTE0NDIyMVowbzELMAkGA1UEBhMC
+VVMxFDASBgNVBAgTC01pc3Npc3NpcHBpMRIwEAYDVQQHEwlSaWRnZWxhbmQxDzAN
+BgNVBAoTBkNTcGlyZTElMCMGA1UEAxMcQ1NwaXJlIEVudGVycHJpc2UgUm9vdCBD
+QS0wMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAO3jASbX+aNjuGUy
+Uo/chAjNjGNeGaUusS7iiuH7XQ4U6Vpol7WRV7Q8LWz2B54RDNtee7uOJw9pnpO2
+nHjcoF61GAsItWseM2iw3OlKB9q9uJXsmVR5P4Rjk1iHEUbIILuAOFk2KALILYOb
+whpQG24LvcZXYfwMclOS+Spvku0LPZ7MRdUF9zw7JjZoKziWt+hPKHwB4Nxx1DhW
+lmK7sjZtGwk2zpqlQoU5/1Zef8b8L/m8W4NHhBmzkTgb7WZrPosfFin2WfiEXLJ7
+MdEnOPLloE9L95QoWDHQZJB+jUt9uS1Nknj3NGWsRp5dr7NN7I8Btx/eYJujpDHg
+YV+KPvECAwEAAaOCCJcwggiTMAsGA1UdDwQEAwIBhjASBgNVHRMBAf8ECDAGAQH/
+AgEBMB0GA1UdDgQWBBQH6qOl2iYRyL4RuuSHQjVJEk1c2TAQBgkrBgEEAYI3FQEE
+AwIBADCCCD0GA1UdIASCCDQwgggwMIIILAYGKQEBAQEBMIIIIDCCCBwGCCsGAQUF
+BwICMIIIDh6CCAoAVABoAGkAcwAgAGMAbwBtAHAAdQB0AGUAcgAgAHMAeQBzAHQA
+ZQBtACwAIABpAG4AYwBsAHUAZABpAG4AZwAgAGEAbABsACAAcgBlAGwAYQB0AGUA
+ZAAgAGUAcQB1AGkAcABtAGUAbgB0ACwAIABuAGUAdAB3AG8AcgBrAHMALAAgAGEA
+bgBkACAAbgBlAHQAdwBvAHIAawAgAGQAZQB2AGkAYwBlAHMAIABhAHIAZQAgAHAA
+cgBvAHYAaQBkAGUAZAAgAG8AbgBsAHkAIABmAG8AcgAgAGEAdQB0AGgAbwByAGkA
+egBlAGQAIABDACAAUwBwAGkAcgBlACAAYgB1AHMAaQBuAGUAcwBzACAAdQBzAGUA
+LgAgACAAQwAgAFMAcABpAHIAZQAgAGMAbwBtAHAAdQB0AGUAcgAgAHMAeQBzAHQA
+ZQBtAHMAIABtAGEAeQAgAGIAZQAgAG0AbwBuAGkAdABvAHIAZQBkACAAZgBvAHIA
+IABhAGwAbAAgAGwAYQB3AGYAdQBsACAAcAB1AHIAcABvAHMAZQBzACwAIABpAG4A
+YwBsAHUAZABpAG4AZwAgAHQAbwAgAGUAbgBzAHUAcgBlACAAdABoAGEAdAAgAHQA
+aABlAGkAcgAgAHUAcwBlACAAaQBzACAAYQB1AHQAaABvAHIAaQB6AGUAZAAsACAA
+ZgBvAHIAIABtAGEAbgBhAGcAZQBtAGUAbgB0ACAAbwBmACAAdABoAGUAIABzAHkA
+cwB0AGUAbQAsACAAdABvACAAZgBhAGMAaQBsAGkAdABhAHQAZQAgAHAAcgBvAHQA
+ZQBjAHQAaQBvAG4AIABhAGcAYQBpAG4AcwB0ACAAdQBuAGEAdQB0AGgAbwByAGkA
+egBlAGQAIABhAGMAYwBlAHMAcwAsACAAYQBuAGQAIAB0AG8AIAB2AGUAcgBpAGYA
+eQAgAHMAZQBjAHUAcgBpAHQAeQAgAHAAcgBvAGMAZQBkAHUAcgBlAHMALAAgAHMA
+dQByAHYAaQB2AGEAYgBpAGwAaQB0AHkALAAgAGEAbgBkACAAbwBwAGUAcgBhAHQA
+aQBvAG4AYQBsACAAcwBlAGMAdQByAGkAdAB5AC4AIAAgAE0AbwBuAGkAdABvAHIA
+aQBuAGcAIABpAG4AYwBsAHUAZABlAHMAIABhAGMAdABpAHYAZQAgAGEAbgBkACAA
+cABhAHMAcwBpAHYAZQAgAGMAaABlAGMAawBzACAAYgB5ACAAYQB1AHQAaABvAHIA
+aQB6AGUAZAAgAEMAIABTAHAAaQByAGUAIABlAG4AdABpAHQAaQBlAHMAIAB0AG8A
+IAB0AGUAcwB0ACwAIABvAHIAIAB2AGUAcgBpAGYAeQAgAHQAaABlACAAaABlAGEA
+bAB0AGgAIABhAG4AZAAgAHMAZQBjAHUAcgBpAHQAeQAgAG8AZgAgAHQAaABpAHMA
+IABzAHkAcwB0AGUAbQAuACAAIABEAHUAcgBpAG4AZwAgAG0AbwBuAGkAdABvAHIA
+aQBuAGcALAAgAGkAbgBmAG8AcgBtAGEAdABpAG8AbgAgAG0AYQB5ACAAYgBlACAA
+ZQB4AGEAbQBpAG4AZQBkACwAIAByAGUAYwBvAHIAZABlAGQALAAgAGMAbwBwAGkA
+ZQBkACAAYQBuAGQAIAB1AHMAZQBkACAAZgBvAHIAIABhAHUAdABoAG8AcgBpAHoA
+ZQBkACAAcAB1AHIAcABvAHMAZQBzAC4AIAAgAFUAcwBlACAAbwBmACAAdABoAGkA
+cwAgAEMAIABTAHAAaQByAGUAIABjAG8AbQBwAHUAdABlAHIAIABzAHkAcwB0AGUA
+bQAsACAAYQB1AHQAaABvAHIAaQB6AGUAZAAsACAAbwByACAAdQBuAGEAdQB0AGgA
+bwByAGkAegBlAGQALAAgAGMAbwBuAHMAdABpAHQAdQB0AGUAcwAgAGMAbwBuAHMA
+ZQBuAHQAIAB0AG8AIABtAG8AbgBpAHQAbwByAGkAbgBnACAAbwBmACAAdABoAGkA
+cwAgAHMAeQBzAHQAZQBtAC4AIAAgAFUAbgBhAHUAdABoAG8AcgBpAHoAZQBkACAA
+dQBzAGUAIABtAGEAeQAgAHMAdQBiAGoAZQBjAHQAIAB5AG8AdQAgAHQAbwAgAGMA
+cgBpAG0AaQBuAGEAbAAgAHAAcgBvAHMAZQBjAHUAdABpAG8AbgAuACAAIABFAHYA
+aQBkAGUAbgBjAGUAIABvAGYAIAB1AG4AYQB1AHQAaABvAHIAaQB6AGUAZAAgAHUA
+cwBlACAAYwBvAGwAbABlAGMAdABlAGQAIABkAHUAcgBpAG4AZwAgAG0AbwBuAGkA
+dABvAHIAaQBuAGcAIABtAGEAeQAgAGIAZQAgAHUAcwBlAGQAIABmAG8AcgAgAGEA
+ZABtAGkAbgBpAHMAdAByAGEAdABpAHYAZQAsACAAYwByAGkAbQBpAG4AYQBsACwA
+IABvAHIAIABvAHQAaABlAHIAIABhAGQAdgBlAHIAcwBlACAAYQBjAHQAaQBvAG4A
+LgAgACAAVQBzAGUAIABvAGYAIAB0AGgAaQBzACAAcwB5AHMAdABlAG0AIABjAG8A
+bgBzAHQAaQB0AHUAdABlAHMAIABjAG8AbgBzAGUAbgB0ACAAdABvACAAbQBvAG4A
+aQB0AG8AcgBpAG4AZwAgAGYAbwByACAAdABoAGUAcwBlACAAcAB1AHIAcABvAHMA
+ZQBzAC4wDQYJKoZIhvcNAQELBQADggEBANoXbn354is3hLS4Z7Cll0ofQqyIe2yn
+4VvUf4AJfUyFskV3REUHXXo1oTEpBjUShNdMlNJsmrtCEgC25w/HINgO2tBsxeTj
+mHxLB2VCQ0faqNhmrK1AQRTq0qVG5mRfD5nDj/M49ahcR2in/chpJe05gf1e7uBk
+VcggTM1M0XIcI9WHZGbCRrS24O/bHQnKkukwXV2WVlzwWi1vxNuj0R2fFcpHOrHd
+468XOVFFelAQCiH4ExwVswLW85rpf4udWENcP+3IDRt1K9tLDLWBfZKY1atu8d9C
+hdB5vdWg0lZBaCaBkshQmRVrHbLPTV1UHFOxkpxqoTV4noNB7EGLSbAxAA==
+-----END CERTIFICATE-----
+ENDOFVMP7B
+
+cat << 'ENDOFVMCSR' > '/etc/ssl/private/sl-websvc2t.csr'
+-----BEGIN CERTIFICATE REQUEST-----
+MIIFJTCCAw0CAQAwgaAxCzAJBgNVBAYTAlVTMRQwEgYDVQQIDAtNaXNzaXNzaXBw
+aTESMBAGA1UEBwwJUmlkZ2VsYW5kMQ8wDQYDVQQKDAZDU3BpcmUxFzAVBgNVBAsM
+DkluZnJhc3RydWN0dXJlMR4wHAYJKoZIhvcNAQkBFg91bml4QGNzcGlyZS5jb20x
+HTAbBgNVBAMMFHNsLXdlYnN2YzJ0LmNvcnAud2FuMIICIjANBgkqhkiG9w0BAQEF
+AAOCAg8AMIICCgKCAgEA5azNvuwZczWsqDmIQ0P99lHjqAenYvYPr9uNYqb6N3HB
+MGQXc5d9ZBzWtqZCBjuW0RLurW82T5X7vZ4ZQTunjj/4HBNGTdsa4kdOtiG/VoG4
+hI+H8GT4FL16PgPYz8irA9so/nI7qEpF4oxXjywk3PANHoSVyS4n7whWhoQeBXsC
+S4f4fkiU89yCMX4/kQC+lJccoxDZK8IGhMmaBEHFSzxtqMt4420maogqJjwWFbUP
+Uq41jYeqqPvfoWrcCxOfZGpANgl9SSmHc6/YWsjpnO3NeSYDzcZ707oO0QYOO4XI
++pHBi+P+zjxCjRvCjfGGAWA0Vvgt4GPMBzrpgz2MKXH1S2FFV/KtSPrBdEYlDMtO
+c3SsUwoOrngxGBrkaX2jLlrfge6DUK00icItH6YB5cgg6TlIetxfA3gGxka2za7W
+aBl0kFluFSGLzcw2VTCojUTVsrippWcfxK8cGnM0eH9wMbV1oqmtoISgFxPXiQXV
+uV3Z0lB69yPWlJg78Vybi1T8mlkhoCcnzc7l1vM0OtjJ+dHzSlBW6nu5AIGg7ln4
+1gfzyLKP8Xx9J3FG21fY8mFFbIlDo41bLDTLCl7iEopl/3sIAWKdRFdXfzR/AWtQ
+qWQUs9FdGbqOocVTQaqE1GUg+FvzRRJR4PPXfSE5z9OZGkPovVM9Vbq15ZYxFYkC
+AwEAAaA/MD0GCSqGSIb3DQEJDjEwMC4wLAYDVR0RBCUwI4IUc2wtd2Vic3ZjMnQu
+Y29ycC53YW6CC3NsLXdlYnN2YzJ0MA0GCSqGSIb3DQEBDQUAA4ICAQBrW+BV7iyo
+V48qrxwVTbDXID/DiQyUlPVheUvAaT7WADm1ezYaVHWDWvMpsGuLMqqDPXVosmXH
+gPcHUXQ3H3rA7PZ+YLCxWBtu1IpmTlpmhelygoMgk46S03dTvuU+84hccC11XyIP
+0JIASEFPafuMsjkrD8tXT7b9rI8mLFKg/n+f0yz/4ZiwGTrmZkQUYONyN+d9NFnI
+9MPzP48rFZk3dbVayGExNq8WIVpddaL+PvDpauyXD/izZNeCH8H0j2QjskG9WzTW
+E+lYvxAUVr6R3enU56nm+sV6AwcDVAi2r1GD/Na4O7ShiVv4Vn1b8sogPqaWBFSL
+QG6genPpQmeRwSmJCTnyoL3sSE6zSx2pOTg2XH2DZiDS1siK/ReXhNQVZbzXkjXZ
+PgsBIkS58Jw50S8NvB7ROdsSg3+fRW2SnAKxoV+u3nhPgcwf+mTHO+W8kB1zsFIj
+wDctF87fzLWT6iCcLLdky7O23+/DFR9qKRSAW6VjhA2oTis3P/nitWIu5+5T2zsY
+r+SaYn+MeM3+sRQaKd6zU6ynngOKfKob/p6fuDSyythF8Fck0t97SbqVI1E6asKD
++aQ0AP6LbgCIecRQVI2CtQz/eU+CkRY6aDlFd2Z1lN6B/jXggSewbTi7w/Tbi8v0
+pJXjyuTVBIFAxhJb2P0ri/1uYuU47r2CvA==
+-----END CERTIFICATE REQUEST-----
+ENDOFVMCSR
+
+cat << 'ENDOFVMKEY' > '/etc/ssl/private/sl-websvc2t.key'
+-----BEGIN PRIVATE KEY-----
+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
+6HrodXphjmtUEk1rFNZXAAjopGeFaEY=
+-----END PRIVATE KEY-----
+ENDOFVMKEY
+
+cat << 'ENDOFVMCERT' > '/etc/ssl/private/sl-websvc2t.pem'
+-----BEGIN CERTIFICATE-----
+MIIGIzCCBQugAwIBAgITewAAB4y6ojK9OkEMGwABAAAHjDANBgkqhkiG9w0BAQsF
+ADBuMQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcT
+CVJpZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMSQwIgYDVQQDExtDU3BpcmUgRW50
+ZXJwcmlzZSBJbnQgQ0EtMDEwHhcNMTkxMjIzMTQzMDM1WhcNMjEwOTA5MjA0MTI4
+WjCBoDELMAkGA1UEBhMCVVMxFDASBgNVBAgTC01pc3Npc3NpcHBpMRIwEAYDVQQH
+EwlSaWRnZWxhbmQxDzANBgNVBAoTBkNTcGlyZTEXMBUGA1UECxMOSW5mcmFzdHJ1
+Y3R1cmUxHTAbBgNVBAMTFHNsLXdlYnN2YzJ0LmNvcnAud2FuMR4wHAYJKoZIhvcN
+AQkBFg91bml4QGNzcGlyZS5jb20wggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIK
+AoICAQDlrM2+7BlzNayoOYhDQ/32UeOoB6di9g+v241ipvo3ccEwZBdzl31kHNa2
+pkIGO5bREu6tbzZPlfu9nhlBO6eOP/gcE0ZN2xriR062Ib9WgbiEj4fwZPgUvXo+
+A9jPyKsD2yj+cjuoSkXijFePLCTc8A0ehJXJLifvCFaGhB4FewJLh/h+SJTz3IIx
+fj+RAL6UlxyjENkrwgaEyZoEQcVLPG2oy3jjbSZqiComPBYVtQ9SrjWNh6qo+9+h
+atwLE59kakA2CX1JKYdzr9hayOmc7c15JgPNxnvTug7RBg47hcj6kcGL4/7OPEKN
+G8KN8YYBYDRW+C3gY8wHOumDPYwpcfVLYUVX8q1I+sF0RiUMy05zdKxTCg6ueDEY
+GuRpfaMuWt+B7oNQrTSJwi0fpgHlyCDpOUh63F8DeAbGRrbNrtZoGXSQWW4VIYvN
+zDZVMKiNRNWyuKmlZx/ErxwaczR4f3AxtXWiqa2ghKAXE9eJBdW5XdnSUHr3I9aU
+mDvxXJuLVPyaWSGgJyfNzuXW8zQ62Mn50fNKUFbqe7kAgaDuWfjWB/PIso/xfH0n
+cUbbV9jyYUVsiUOjjVssNMsKXuISimX/ewgBYp1EV1d/NH8Ba1CpZBSz0V0Zuo6h
+xVNBqoTUZSD4W/NFElHg89d9ITnP05kaQ+i9Uz1VurXlljEViQIDAQABo4IBhTCC
+AYEwLAYDVR0RBCUwI4IUc2wtd2Vic3ZjMnQuY29ycC53YW6CC3NsLXdlYnN2YzJ0
+MB0GA1UdDgQWBBQ9j91fAdHcq2X3PRieWCZBhzERizAfBgNVHSMEGDAWgBRpaqTu
+lEWKimRKBhiL3weWAJQ1CTBCBgNVHR8EOzA5MDegNaAzhjFodHRwOi8vaW50MDEt
+cGtpLmNvcnAud2FuL2NybC9jcy1lbnQtaW50LWNhMDEuY3JsME0GCCsGAQUFBwEB
+BEEwPzA9BggrBgEFBQcwAoYxaHR0cDovL2ludDAxLXBraS5jb3JwLndhbi9jcnQv
+Y3MtZW50LWludC1jYTAxLmNydDAOBgNVHQ8BAf8EBAMCBaAwPAYJKwYBBAGCNxUH
+BC8wLQYlKwYBBAGCNxUIiKlZgePABYepgRuE3PMvgqq0QnWHpa83gc38aAIBZAIB
+ETATBgNVHSUEDDAKBggrBgEFBQcDATAbBgkrBgEEAYI3FQoEDjAMMAoGCCsGAQUF
+BwMBMA0GCSqGSIb3DQEBCwUAA4IBAQCGdnbwArW4Ykq9I3Lu9pXRb+UJtD/wXJkf
+fHCBJ7WmqUIbzuCWLQrWB9DsYe/Q5JXvXV0Idd+T91k0pd2pexGjDVBCw4aG1Pkx
+/qT9EXfXT9ef2AaW0+1T4Fnxx7hgLy3zSWA9osEkC018k6gQdsmG7LijfU4oxyK7
+QkdFNKSe/ybmzeSHot+aQn4VjoXvYyNIJYHlYeUocbqbn4FTp7BsdFgtVz67tjHq
+C8/XlLIws5op4c84ZBn4fm/y6fgJbGDYM/DjvRW03xsMjhTW4U/SmbP32z8fHuO0
+NB6vxi6vmPps0Hk4twAA7vbHuFtirrH2qcN1IAiIPKpTeIrQmPDP
+-----END CERTIFICATE-----
+ENDOFVMCERT
+
+cat << 'ENDOFSYSCTLCONF' > '/etc/sysctl.conf'
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.all.secure_redirects = 0
+net.ipv4.conf.default.accept_redirects = 0
+net.ipv4.conf.default.secure_redirects = 0
+net.ipv4.ip_forward = 0
+net.ipv4.tcp_timestamps = 0
+net.ipv6.conf.all.accept_redirects = 0
+net.ipv6.conf.all.forwarding = 0
+net.ipv6.conf.default.accept_redirects = 0
+ENDOFSYSCTLCONF
+
+cat << 'ENDOFETCPROFILE' > '/etc/profile'
+# /etc/profile
+
+# System wide environment and startup programs, for login setup
+# Functions and aliases go in /etc/bashrc
+
+# It's NOT a good idea to change this file unless you know what you
+# are doing. It's much better to create a custom.sh shell script in
+# /etc/profile.d/ to make custom changes to your environment, as this
+# will prevent the need for merging in future updates.
+
+pathmunge () {
+    case ":${PATH}:" in
+        *:"$1":*)
+            ;;
+        *)
+            if [ "$2" = "after" ] ; then
+                PATH=$PATH:$1
+            else
+                PATH=$1:$PATH
+            fi
+    esac
+}
+
+
+if [ -x /usr/bin/id ]; then
+    if [ -z "$EUID" ]; then
+        # ksh workaround
+        EUID=`/usr/bin/id -u`
+        UID=`/usr/bin/id -ru`
+    fi
+    USER="`/usr/bin/id -un`"
+    LOGNAME=$USER
+    MAIL="/var/spool/mail/$USER"
+fi
+
+# Path manipulation
+if [ "$EUID" = "0" ]; then
+    pathmunge /usr/sbin
+    pathmunge /usr/local/sbin
+else
+    pathmunge /usr/local/sbin after
+    pathmunge /usr/sbin after
+fi
+
+HOSTNAME=`/usr/bin/hostname 2>/dev/null`
+HISTSIZE=1000
+if [ "$HISTCONTROL" = "ignorespace" ] ; then
+    export HISTCONTROL=ignoreboth
+else
+    export HISTCONTROL=ignoredups
+fi
+
+export PATH USER LOGNAME MAIL HOSTNAME HISTSIZE HISTCONTROL
+
+# By default, we want umask to get set. This sets it for login shell
+# Current threshold for system reserved uid/gids is 200
+# You could check uidgid reservation validity in
+# /usr/share/doc/setup-*/uidgid file
+if [ $UID -gt 199 ] && [ "`/usr/bin/id -gn`" = "`/usr/bin/id -un`" ]; then
+    umask 027
+else
+    umask 027
+fi
+
+for i in /etc/profile.d/*.sh ; do
+    if [ -r "$i" ]; then
+        if [ "${-#*i}" != "$-" ]; then 
+            . "$i"
+        else
+            . "$i" >/dev/null
+        fi
+    fi
+done
+
+unset i
+unset -f pathmunge
+ENDOFETCPROFILE
+
+cat << 'ENDOF256term.csh' > '/etc/profile.d/256term.csh'
+# Enable 256 color capabilities for appropriate terminals
+
+# Set this variable in your local shell config if you want remote
+# xterms connecting to this system, to be sent 256 colors.
+# This can be done in /etc/csh.cshrc, or in an earlier profile.d script.
+#   SEND_256_COLORS_TO_REMOTE=1
+
+# Terminals with any of the following set, support 256 colors (and are local)
+set local256="$?COLORTERM$?XTERM_VERSION$?ROXTERM_ID$?KONSOLE_DBUS_SESSION"
+
+if ($?TERM && ($local256 || $?SEND_256_COLORS_TO_REMOTE)) then
+
+  switch ($TERM)
+    case 'xterm':
+    case 'screen':
+    case 'Eterm':
+      setenv TERM "$TERM-256color"
+  endsw
+
+  if ($?TERMCAP && ($TERM == "screen-256color")) then
+    setenv TERMCAP `echo $TERMCAP | sed -e 's/Co#8/Co#256/g'`
+  endif
+endif
+
+unset local256
+ENDOF256term.csh
+
+cat << 'ENDOF256term.sh' > '/etc/profile.d/256term.sh'
+# Enable 256 color capabilities for appropriate terminals
+
+# Set this variable in your local shell config (such as ~/.bashrc)
+# if you want remote xterms connecting to this system, to be sent 256 colors.
+# This must be set before reading global initialization such as /etc/bashrc.
+#   SEND_256_COLORS_TO_REMOTE=1
+
+# Terminals with any of the following set, support 256 colors (and are local)
+local256="$COLORTERM$XTERM_VERSION$ROXTERM_ID$KONSOLE_DBUS_SESSION"
+
+if [ -n "$local256" ] || [ -n "$SEND_256_COLORS_TO_REMOTE" ]; then
+
+  case "$TERM" in
+    'xterm') TERM=xterm-256color;;
+    'screen') TERM=screen-256color;;
+    'Eterm') TERM=Eterm-256color;;
+  esac
+  export TERM
+
+  if [ -n "$TERMCAP" ] && [ "$TERM" = "screen-256color" ]; then
+    TERMCAP=$(echo "$TERMCAP" | sed -e 's/Co#8/Co#256/g')
+    export TERMCAP
+  fi
+fi
+
+unset local256
+ENDOF256term.sh
+
+cat << 'ENDOFalias.sh' > '/etc/profile.d/alias.sh'
+# /etc/profile.d/alias.bash
+
+# Set some generic aliases
+alias o='less'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias cd..='cd ..'
+if test "$is" != "ksh" ; then
+  alias -- +='pushd .'
+  alias -- -='popd'
+fi
+alias rd=rmdir
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias grep='grep --color=auto'
+alias md='mkdir -p'
+if test "$is" = "bash" -a ! -x /bin/which -a ! -x /usr/bin/which ; then
+  _which () {
+    local file=$(type -p ${1+"$@"} 2>/dev/null)
+    if test -n "$file" -a -x "$file"; then
+      echo "$file"
+      return 0
+    fi
+    hash -r
+    type -P ${1+"$@"}
+  }
+  alias which=_which
+fi
+alias rehash='hash -r'
+alias beep='echo -en "\x07"'
+alias unmount='echo "Error: Try the command: umount" 1>&2; false'
+alias ls='ls -A -N --color=tty -T 0'
+alias ll='ls -l -A -N --color=tty -T 0'
+alias l='ls -A -N --color=tty -T 0'
+alias la='ls -A -N --color=tty -T 0'
+alias ls-l='ls -l -A -N --color=tty -T 0'
+alias md='mkdir -p'
+alias rd='rmdir'
+alias rehash='hash -r'
+alias more='more -sl'
+alias vi='vim'
+ENDOFalias.sh
+
+cat << 'ENDOFbash_completion.sh' > '/etc/profile.d/bash_completion.sh'
+if [ -f  "${XDG_CONFIG_HOME:-$HOME/.config}/bash_completion" ]; then
+  . "${XDG_CONFIG_HOME:-$HOME/.config}/bash_completion"
+fi
+if [ -f "/usr/share/bash-completion/bash_completion" ]; then
+  . /usr/share/bash-completion/bash_completion
+fi
+ENDOFbash_completion.sh
+
+cat << 'ENDOFcolorgrep.csh' > '/etc/profile.d/colorgrep.csh'
+
+# color-grep initialization
+
+/usr/libexec/grepconf.sh -c
+if ( $status == 1 ) then
+    exit
+endif
+
+alias grep 'grep --color=auto'
+alias egrep 'egrep --color=auto'
+alias fgrep 'fgrep --color=auto'
+ENDOFcolorgrep.csh
+
+cat << 'ENDOFcolorgrep.sh' > '/etc/profile.d/colorgrep.sh'
+alias grep='grep --color=auto' 2>/dev/null
+alias egrep='egrep --color=auto' 2>/dev/null
+alias fgrep='fgrep --color=auto' 2>/dev/null
+ENDOFcolorgrep.sh
+
+cat << 'ENDOFcolorls.csh' > '/etc/profile.d/colorls.csh'
+# skip everything for non-interactive shells
+if (! $?prompt) exit
+
+# color-ls initialization
+if ( $?USER_LS_COLORS ) then
+  if ( "$USER_LS_COLORS" != "" ) then
+     #when USER_LS_COLORS defined do not override user
+     #specified LS_COLORS and use them
+     goto finish
+  endif
+endif
+
+alias ll 'ls -l'
+alias l. 'ls -d .*'
+set COLORS=/etc/DIR_COLORS
+
+if ($?TERM) then
+  if ( -e "/etc/DIR_COLORS.256color" ) then
+    if ( "`/usr/bin/tput colors`" == "256" ) then
+       set COLORS=/etc/DIR_COLORS.256color
+    endif
+  endif
+  if ( -e "/etc/DIR_COLORS.$TERM" ) then
+     set COLORS="/etc/DIR_COLORS.$TERM"
+  endif
+endif
+if ( -f ~/.dircolors ) set COLORS=~/.dircolors
+if ( -f ~/.dir_colors ) set COLORS=~/.dir_colors
+if ($?TERM) then
+  if ( -f ~/.dircolors."$TERM" ) set COLORS=~/.dircolors."$TERM"
+  if ( -f ~/.dir_colors."$TERM" ) set COLORS=~/.dir_colors."$TERM"
+endif
+set INCLUDE="`/usr/bin/cat "$COLORS" | /usr/bin/grep '^INCLUDE' | /usr/bin/cut -d ' ' -f2-`"
+
+if ( ! -e "$COLORS" ) exit
+
+set _tmp="`/usr/bin/mktemp .colorlsXXX -q --tmpdir=/tmp`"
+#if mktemp fails, exit when include was active, otherwise use $COLORS file
+if ( "$_tmp" == '' ) then
+  if ( "$INCLUDE" == '' ) then
+    eval "`/usr/bin/dircolors -c $COLORS`"
+  endif
+  goto cleanup
+endif
+
+if ( "$INCLUDE" != '' ) /usr/bin/cat "$INCLUDE" >> $_tmp
+/usr/bin/grep -v '^INCLUDE' "$COLORS" >> $_tmp
+
+eval "`/usr/bin/dircolors -c $_tmp`"
+
+/usr/bin/rm -f $_tmp
+
+if ( "$LS_COLORS" == '' ) exit
+cleanup:
+set color_none=`/usr/bin/sed -n '/^COLOR.*none/Ip' < $COLORS`
+if ( "$color_none" != '' ) then
+   unset color_none
+   exit
+endif
+unset color_none
+unset _tmp
+unset INCLUDE
+unset COLORS
+
+finish:
+alias ll 'ls -l --color=auto'
+alias l. 'ls -d .* --color=auto'
+alias ls 'ls --color=auto'
+ENDOFcolorls.csh
+
+cat << 'ENDOFcolorls.sh' > '/etc/profile.d/colorls.sh'
+# color-ls initialization
+
+# Skip all for noninteractive shells.
+[ ! -t 0 ] && return
+
+#when USER_LS_COLORS defined do not override user LS_COLORS, but use them.
+if [ -z "$USER_LS_COLORS" ]; then
+
+  alias ll='ls -l' 2>/dev/null
+  alias l.='ls -d .*' 2>/dev/null
+
+  INCLUDE=
+  COLORS=
+
+  for colors in "$HOME/.dir_colors.$TERM" "$HOME/.dircolors.$TERM" \
+      "$HOME/.dir_colors" "$HOME/.dircolors"; do
+    [ -e "$colors" ] && COLORS="$colors" && \
+    INCLUDE="`/usr/bin/cat "$COLORS" | /usr/bin/grep '^INCLUDE' | /usr/bin/cut -d ' ' -f2-`" && \
+    break
+  done
+
+  [ -z "$COLORS" ] && [ -e "/etc/DIR_COLORS.256color" ] && \
+  [ "x`/usr/bin/tty -s && /usr/bin/tput colors 2>/dev/null`" = "x256" ] && \
+  COLORS="/etc/DIR_COLORS.256color"
+
+  [ -z "$COLORS" ] && [ -e "/etc/DIR_COLORS.$TERM" ] && \
+  COLORS="/etc/DIR_COLORS.$TERM"
+
+  [ -z "$COLORS" ] && [ -e "/etc/DIR_COLORS" ] && \
+  COLORS="/etc/DIR_COLORS"
+
+  # Existence of $COLORS already checked above.
+  [ -n "$COLORS" ] || return
+
+  if [ -e "$INCLUDE" ];
+  then
+    TMP="`/usr/bin/mktemp .colorlsXXX -q --tmpdir=/tmp`"
+    [ -z "$TMP" ] && return
+
+    /usr/bin/cat "$INCLUDE" >> $TMP
+    /usr/bin/grep -v '^INCLUDE' "$COLORS" >> $TMP
+
+    eval "`/usr/bin/dircolors --sh $TMP 2>/dev/null`"
+    /usr/bin/rm -f $TMP
+  else
+    eval "`/usr/bin/dircolors --sh $COLORS 2>/dev/null`"
+  fi
+
+  [ -z "$LS_COLORS" ] && return
+  /usr/bin/grep -qi "^COLOR.*none" $COLORS >/dev/null 2>/dev/null && return
+fi
+
+unset TMP COLORS INCLUDE
+
+alias dir='ls -l'
+alias ls='ls -A -N --color=tty -T 0'
+alias ll='ls -l -A -N --color=tty -T 0'
+alias l='ls -A -N --color=tty -T 0'
+alias la='ls -A -N --color=tty -T 0'
+alias ls-l='ls -l -A -N --color=tty -T 0'
+
+ENDOFcolorls.sh
+
+cat << 'ENDOFlang.csh' > '/etc/profile.d/lang.csh'
+# /etc/profile.d/lang.csh - set i18n stuff
+
+set sourced=0
+
+if ($?LANG) then
+    set saved_lang=$LANG
+    if ( -f "$HOME/.i18n" ) then
+	eval `sed -ne 's|^[[:blank:]]*\([^#=]\{1,\}\)=\([^=]*\)|setenv \1 \2;|p' "$HOME/.i18n"`
+	set sourced=1
+    endif
+    setenv LANG $saved_lang
+    unset saved_lang
+else
+    foreach file (/etc/locale.conf "$HOME/.i18n")
+        if ( -f $file ) then
+	    eval `sed -ne 's|^[[:blank:]]*\([^#=]\{1,\}\)=\([^=]*\)|setenv \1 \2;|p' $file`
+	    set sourced=1
+        endif
+    end
+endif
+
+if ($sourced == 1) then
+    if ($?LC_ALL && $?LANG) then
+        if ($LC_ALL == $LANG) then
+            unsetenv LC_ALL
+        endif
+    endif
+    
+    set consoletype=`/sbin/consoletype stdout`
+
+    if ($?LANG) then
+        switch ($LANG)
+	    case *.utf8*:
+	    case *.UTF-8*:
+		if ( $?TERM ) then
+		    if ( "$TERM" == "linux" ) then
+			if ( "$consoletype" == "vt" ) then
+			    switch ($LANG)
+			    	case en_IN*:
+			    		breaksw
+			    	case ja*:
+			    	case ko*:
+			    	case si*:
+			    	case zh*:
+			    	case ar*:
+			    	case fa*:
+			    	case he*:
+			    	case *_IN*:
+			    		setenv LANG en_US.UTF-8
+			    		breaksw
+			    endsw
+			endif
+		    endif
+		endif
+		breaksw
+	    case *:
+		if ( $?TERM ) then
+		    if ( "$TERM" == "linux" ) then
+			if ( "$consoletype" == "vt" ) then
+			    switch ($LANG)
+			    	case en_IN*:
+			    		breaksw
+			    	case ja*:
+			    	case ko*:
+			    	case si*:
+			    	case zh*:
+			    	case ar*:
+			    	case fa*:
+			    	case he*:
+			    	case *_IN*:
+			    		setenv LANG en_US
+			    		breaksw
+			    endsw
+			endif
+		    endif
+		endif
+		breaksw
+	endsw
+    endif    
+    unsetenv SYSFONTACM
+    unsetenv SYSFONT
+    unsetenv consoletype
+endif
+ENDOFlang.csh
+
+cat << 'ENDOFlang.sh' > '/etc/profile.d/lang.sh'
+# /etc/profile.d/lang.sh - set i18n stuff
+
+sourced=0
+
+if [ -n "$LANG" ]; then
+    saved_lang="$LANG"
+    [ -f "$HOME/.i18n" ] && . "$HOME/.i18n" && sourced=1
+    LANG="$saved_lang"
+    unset saved_lang
+else
+    for langfile in /etc/locale.conf "$HOME/.i18n" ; do
+        [ -f $langfile ] && . $langfile && sourced=1
+    done
+fi
+
+if [ "$sourced" = 1 ]; then
+    [ -n "$LANG" ] && export LANG || unset LANG
+    [ -n "$LC_ADDRESS" ] && export LC_ADDRESS || unset LC_ADDRESS
+    [ -n "$LC_CTYPE" ] && export LC_CTYPE || unset LC_CTYPE
+    [ -n "$LC_COLLATE" ] && export LC_COLLATE || unset LC_COLLATE
+    [ -n "$LC_IDENTIFICATION" ] && export LC_IDENTIFICATION || unset LC_IDENTIFICATION
+    [ -n "$LC_MEASUREMENT" ] && export LC_MEASUREMENT || unset LC_MEASUREMENT
+    [ -n "$LC_MESSAGES" ] && export LC_MESSAGES || unset LC_MESSAGES
+    [ -n "$LC_MONETARY" ] && export LC_MONETARY || unset LC_MONETARY
+    [ -n "$LC_NAME" ] && export LC_NAME || unset LC_NAME
+    [ -n "$LC_NUMERIC" ] && export LC_NUMERIC || unset LC_NUMERIC
+    [ -n "$LC_PAPER" ] && export LC_PAPER || unset LC_PAPER
+    [ -n "$LC_TELEPHONE" ] && export LC_TELEPHONE || unset LC_TELEPHONE
+    [ -n "$LC_TIME" ] && export LC_TIME || unset LC_TIME
+    if [ -n "$LC_ALL" ]; then
+       if [ "$LC_ALL" != "$LANG" ]; then
+         export LC_ALL
+       else
+         unset LC_ALL
+       fi
+    else
+       unset LC_ALL
+    fi
+    [ -n "$LANGUAGE" ] && export LANGUAGE || unset LANGUAGE
+    [ -n "$LINGUAS" ] && export LINGUAS || unset LINGUAS
+    [ -n "$_XKB_CHARSET" ] && export _XKB_CHARSET || unset _XKB_CHARSET
+    
+    consoletype=$CONSOLETYPE
+    if [ -z "$consoletype" ]; then
+      consoletype=$(/sbin/consoletype stdout)
+    fi
+
+    if [ -n "$LANG" ]; then
+      case $LANG in
+    	*.utf8*|*.UTF-8*)
+    	if [ "$TERM" = "linux" ]; then
+    	    if [ "$consoletype" = "vt" ]; then
+    	    	case $LANG in 
+    	    		ja*) LANG=en_US.UTF-8 ;;
+    	    		ko*) LANG=en_US.UTF-8 ;;
+			si*) LANG=en_US.UTF-8 ;;
+    	    		zh*) LANG=en_US.UTF-8 ;;
+    	    		ar*) LANG=en_US.UTF-8 ;;
+    	    		fa*) LANG=en_US.UTF-8 ;;
+    	    		he*) LANG=en_US.UTF-8 ;;
+    	    		en_IN*) ;;
+    	    		*_IN*) LANG=en_US.UTF-8 ;;
+    	    	esac
+            fi
+        fi
+	;;
+	*)
+	if [ "$TERM" = "linux" ]; then
+	    if [ "$consoletype" = "vt" ]; then
+    	    	case $LANG in 
+    	    		ja*) LANG=en_US ;;
+    	    		ko*) LANG=en_US ;;
+			si*) LANG=en_US ;;
+    	    		zh*) LANG=en_US ;;
+    	    		ar*) LANG=en_US ;;
+    	    		fa*) LANG=en_US ;;
+    	    		he*) LANG=en_US ;;
+    	    		en_IN*) ;;
+    	    		*_IN*) LANG=en_US ;;
+    	    	esac
+	    fi
+	fi
+	;;
+      esac
+    fi
+
+    unset SYSFONTACM SYSFONT consoletype
+fi
+unset sourced
+unset langfile
+ENDOFlang.sh
+
+cat << 'ENDOFless.csh' > '/etc/profile.d/less.csh'
+# less initialization script (csh)
+if ( -x /usr/bin/lesspipe.sh ) then
+  setenv LESSOPEN "||/usr/bin/lesspipe.sh %s"
+endif
+ENDOFless.csh
+
+cat << 'ENDOFless.sh' > '/etc/profile.d/less.sh'
+if [ -x /usr/bin/lesspipe.sh ]; then
+  export LESSOPEN="${LESSOPEN-||/usr/bin/lesspipe.sh %s}"
+fi
+ENDOFless.sh
+
+cat << 'ENDOFlscolor.sh' > '/etc/profile.d/lscolor.sh'
+case "$-" in
+*i*)
+  if test -x /usr/bin/dircolors ; then
+    if test -f $HOME/.dir_colors ; then
+      eval "`/usr/bin/dircolors -b $HOME/.dir_colors`"
+    elif test -f /etc/DIR_COLORS.256color ; then
+      eval "`/usr/bin/dircolors -b /etc/DIR_COLORS`"
+    elif test -f /etc/DIR_COLORS ; then
+      eval "`/usr/bin/dircolors -b /etc/DIR_COLORS`"
+    fi
+  fi
+
+  if test "${LS_COLORS+empty}" = "${LS_COLORS:+empty}" ; then
+    LS_OPTIONS=--color=all
+  else
+    LS_OPTIONS=--color=none
+  fi
+  if test "$UID" = 0 ; then
+    LS_OPTIONS="-A -N $LS_OPTIONS -T 0"
+  else
+    LS_OPTIONS="-N $LS_OPTIONS -T 0"
+  fi
+
+  if test "$EMACS" = "t" ; then
+    LS_OPTIONS='-N --color=none -T 0';
+  fi
+
+  export LS_OPTIONS
+
+  if test "$is" != "ash" ; then
+    unalias ls 2>/dev/null
+  fi
+  case "$is" in
+    bash|dash|ash)
+      _ls ()
+      {
+        local IFS=' '
+        command ls $LS_OPTIONS ${1+"$@"}
+      }
+      alias ls=_ls
+      ;;
+    zsh)
+      test -s /etc/profile.d/ls.zsh && . /etc/profile.d/ls.zsh
+      ;;
+    ksh)
+      _ls ()
+      {
+        typeset IFS=' '
+        command ls $LS_OPTIONS ${1+"$@"}
+      }
+      alias ls=_ls
+      ;;
+    *)  alias ls='/bin/ls $LS_OPTIONS' ;;
+  esac
+  alias dir='ls -l'
+  alias ls='ls -A -N --color=tty -T 0'
+  alias ll='ls -l -A -N --color=tty -T 0'
+  alias l='ls -A -N --color=tty -T 0'
+  alias la='ls -A -N --color=tty -T 0'
+  alias ls-l='ls -l -A -N --color=tty -T 0'
+  ;;
+esac
+ENDOFlscolor.sh
+
+cat << 'ENDOFps1.sh' > '/etc/profile.d/ps1.sh'
+shopt -s checkwinsize
+shopt -s histappend
+HISTTIMEFORMAT=${HISTTIMEFORMAT:-"%F %H:%M:%S "}
+unset TERMCAP
+
+spwd () {
+  ( IFS=/
+  set $PWD
+  if test $# -le 3 ; then
+    echo "$PWD"
+  else
+    eval echo \"..\${$(($#-1))}/\${$#}\"
+  fi ) ; }
+
+if path tput hs 2>/dev/null || path tput -T $TERM+sl hs 2>/dev/null ; then
+  if test "$TERM" = xterm ; then
+    _tsl=$(echo -en '\e]2;')
+    _isl=$(echo -en '\e]1;')
+    _fsl=$(echo -en '\007')
+  else
+    _tsl=$(path tput tsl 2>/dev/null || path tput -T $TERM+sl tsl 2>/dev/null)
+    _isl=''
+    _fsl=$(path tput fsl 2>/dev/null || path tput -T $TERM+sl fsl 2>/dev/null)
+  fi
+  _sc=$(tput sc 2>/dev/null)
+  _rc=$(tput rc 2>/dev/null)
+  if test -n "$_tsl" -a -n "$_isl" -a "$_fsl" ; then
+    TS1="$_sc$_tsl%s@%s:%s$_fsl$_isl%s$_fsl$_rc"
+  elif test -n "$_tsl" -a "$_fsl" ; then
+    TS1="$_sc$_tsl%s@%s:%s$_fsl$_rc"
+  fi
+  unset _isl _tsl _fsl _sc _rc
+
+  ppwd () {
+    local dir
+    local -i width
+    test -n "$TS1" || return;
+    dir="$(dirs +0)"
+    let width=${#dir}-18
+    test ${#dir} -le 18 || dir="...${dir#$(printf "%.*s" $width "$dir")}"
+    if test ${#TS1} -gt 17 ; then
+      printf "$TS1" "$USER" "$HOST" "$dir" "$HOST"
+    else
+      printf "$TS1" "$USER" "$HOST" "$dir"
+    fi
+    }
+else
+  ppwd () { true; }
+fi
+
+if test "$UID" -eq 0  ; then
+  if test -n "$TERM" -a -t ; then
+    _bred="$(path tput bold 2> /dev/null; path tput setaf 1 2> /dev/null)"
+    _sgr0="$(path tput sgr0 2> /dev/null)"
+  fi
+  if test -n "$_bred" -a -n "$_sgr0" ; then
+    _u="\[$_bred\]\h"
+    _p=" #\[$_sgr0\]"
+  else
+    _u="\h"
+    _p=" #"
+  fi
+  unset _bred _sgr0
+else
+  _u="\u@\h"
+  _p=">"
+fi
+
+if test -z "$EMACS" -a -z "$MC_SID" -a -z "$restricted" -a -z "$STY" -a -n "$DISPLAY" -a ! -r $HOME/.bash.expert; then
+  _t="\[\$(ppwd)\]"
+else
+  _t=""
+fi
+
+case "$(declare -p PS1 2> /dev/null)" in
+  *-x*PS1=*)
+    ;;
+  *)
+    PS1="${_t}${_u}:\w${_p} "
+    ;;
+esac
+
+unset _u _p _t
+
+PS2='> '
+test -s /etc/profile.d/alias.bash && . /etc/profile.d/alias.bash
+test -s $HOME/.alias && . $HOME/.alias
+
+case "$BASH_VERSION" in
+  [2-9].*)
+    test -e /etc/bash_completion && . /etc/bash_completion
+    test -s /etc/profile.d/bash_completion.sh && . /etc/profile.d/bash_completion.sh
+    test -s /etc/profile.d/complete.bash && . /etc/profile.d/complete.bash
+    if [[ $BASH_COMPLETION_COMPAT_DIR != /etc/bash_completion.d ]]; then
+      for s in /etc/bash_completion.d/*.sh ; do
+        test -r $s && . $s
+      done
+    fi
+    test -e $HOME/.bash_completion && . $HOME/.bash_completion
+    test -f /etc/bash_command_not_found && . /etc/bash_command_not_found
+    ;;
+  *)
+    ;;
+esac
+
+HISTCONTROL=ignoreboth
+ENDOFps1.sh
+
+cat << 'ENDOFvim.csh' > '/etc/profile.d/vim.csh'
+if ( -x /usr/bin/id ) then
+    if ( "`/usr/bin/id -u`" > 200 ) then
+        alias vi vim
+    endif
+endif
+ENDOFvim.csh
+
+cat << 'ENDOFvim.sh' > '/etc/profile.d/vim.sh'
+alias vi=vim
+ENDOFvim.sh
+
+cat << 'ENDOFwhich2.csh' > '/etc/profile.d/which2.csh'
+# Initialization script for csh
+
+# export AFS if you are in AFS environment
+
+# alias which 'alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
+ENDOFwhich2.csh
+
+cat << 'ENDOFwhich2.sh' > '/etc/profile.d/which2.sh'
+alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
+ENDOFwhich2.sh
+
+cat << 'ENDOF.bash_profile' > '/root/.bash_profile'
+# .bash_profile
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+        . ~/.bashrc
+fi
+
+# User specific environment and startup programs
+PATH=$PATH:$HOME/bin
+export PATH
+set -o vi
+alias less='less -M -I -R'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias beep='echo -en "\007"'
+alias cd..='cd ..'
+alias dir='ls -l'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias grep='grep --color=auto'
+alias ls='ls -A -N --color=tty -T 0'
+alias ll='ls -l -A -N --color=tty -T 0'
+alias l='ls -A -N --color=tty -T 0'
+alias la='ls -A -N --color=tty -T 0'
+alias ls-l='ls -l -A -N --color=tty -T 0'
+alias md='mkdir -p'
+alias rd='rmdir'
+alias rehash='hash -r'
+ENDOF.bash_profile
+
+cat << 'ENDOF.bashrc' > '/root/.bashrc'
+# .bashrc
+
+if [ -f '/etc/bash.bashrc' ]; then
+  . '/etc/bash.bashrc'
+elif [ -f '/etc/bashrc' ]; then
+  . '/etc/bashrc'
+fi
+
+test -s /etc/profile.d/colorls.sh && . /etc/profile.d/colorls.sh
+test -s /etc/profile.d/colorgrep.sh && . /etc/profile.d/colorgrep.sh
+test -s /etc/profile.d/lscolor.sh && . /etc/profile.d/lscolor.sh
+test -s /etc/profile.d/alias.sh && . /etc/profile.d/alias.sh
+test -s /etc/profile.d/vim.sh && . /etc/profile.d/vim.sh
+
+case "$BASH_VERSION" in
+  [2-9].*)
+    test -e '/etc/bash_completion' && . '/etc/bash_completion'
+    test -s '/etc/profile.d/bash_completion.sh' && . '/etc/profile.d/bash_completion.sh'
+    test -e "$HOME/.bash_completion" && . "$HOME/.bash_completion"
+    test -f '/etc/bash_command_not_found'  && . '/etc/bash_command_not_found'
+    if [[ $BASH_COMPLETION_COMPAT_DIR != /etc/bash_completion.d ]]; then
+      for s in /etc/bash_completion.d/*.sh ; do
+        test -r "${s}" && . "${s}"
+      done
+    fi
+    ;;
+  *)
+    ;;
+esac
+
+path ()
+{
+    if test -x /root/bin/$1 ; then
+        ${1+"/root/bin/$@"}
+    elif test -x "/usr/bin/$1" ; then
+        ${1+"/usr/bin/$@"}
+    elif test -x /usr/sbin/$1 ; then
+        ${1+"/usr/sbin/$@"}
+    elif test -x /bin/$1 ; then
+        ${1+"/bin/$@"}
+    elif test -x /sbin/$1 ; then
+        ${1+"/sbin/$@"}
+    elif test -x "/usr/local/bin/$1" ; then
+        ${1+"/usr/local/bin/$@"}
+    elif test -x /usr/local/sbin/$1 ; then
+        ${1+"/usr/local/sbin/$@"}
+    fi
+}
+
+PATH="/bin:/sbin:$PATH"
+export PATH
+
+if [ -f '/etc/inputrc' ]; then
+  INPUTRC='/etc/inputrc'
+  export INPUTRC
+fi
+
+for dir in '/usr/local/share/man' '/usr/local/man' '/usr/share/man'; do
+  test -d $dir && MANPATH=$MANPATH:$dir
+done
+
+unset dir
+export MANPATH
+
+if test \( -n "$SSH_CONNECTION" -o -n "$SUDO_COMMAND" \) -a -z "$PROFILEREAD" ; then
+  _SOURCED_FOR_SSH=true
+  . '/etc/profile' > '/dev/null' 2>&1
+  unset _SOURCED_FOR_SSH
+fi
+
+if test -t && type -p tty > '/dev/null' 2>&1 ; then
+  GPG_TTY="`tty`"
+  export GPG_TTY
+fi
+
+TERM=xterm-256color
+export TERM
+
+shopt -s checkwinsize
+shopt -s histappend
+
+HISTTIMEFORMAT=${HISTTIMEFORMAT:-"%F %H:%M:%S "}
+unset TERMCAP
+
+PS2='> '
+export PS2
+
+HISTCONTROL='ignoreboth'
+export HISTCONTROL
+
+HISTSIZE='10000'
+export HISTSIZE
+
+LS_COLORS='no=00:fi=00:di=01;34:ln=00;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=41;33;01:ex=00;32:*.cmd=00;32:*.exe=01;32:*.com=01;32:*.bat=01;32:*.btm=01;32:*.dll=01;32:*.tar=00;31:*.tbz=00;31:*.tgz=00;31:*.rpm=00;31:*.deb=00;31:*.arj=00;31:*.taz=00;31:*.lzh=00;31:*.lzma=00;31:*.zip=00;31:*.zoo=00;31:*.z=00;31:*.Z=00;31:*.gz=00;31:*.bz2=00;31:*.tb2=00;31:*.tz2=00;31:*.tbz2=00;31:*.xz=00;31:*.avi=01;35:*.bmp=01;35:*.fli=01;35:*.gif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mng=01;35:*.mov=01;35:*.mpg=01;35:*.pcx=01;35:*.pbm=01;35:*.pgm=01;35:*.png=01;35:*.ppm=01;35:*.tga=01;35:*.tif=01;35:*.xbm=01;35:*.xpm=01;35:*.dl=01;35:*.gl=01;35:*.wmv=01;35:*.aiff=00;32:*.au=00;32:*.mid=00;32:*.mp3=00;32:*.ogg=00;32:*.voc=00;32:*.wav=00;32:'
+export LS_COLORS
+
+COLORS='no=00:fi=00:di=01;34:ln=00;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=41;33;01:ex=00;32:*.cmd=00;32:*.exe=01;32:*.com=01;32:*.bat=01;32:*.btm=01;32:*.dll=01;32:*.tar=00;31:*.tbz=00;31:*.tgz=00;31:*.rpm=00;31:*.deb=00;31:*.arj=00;31:*.taz=00;31:*.lzh=00;31:*.lzma=00;31:*.zip=00;31:*.zoo=00;31:*.z=00;31:*.Z=00;31:*.gz=00;31:*.bz2=00;31:*.tb2=00;31:*.tz2=00;31:*.tbz2=00;31:*.xz=00;31:*.avi=01;35:*.bmp=01;35:*.fli=01;35:*.gif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mng=01;35:*.mov=01;35:*.mpg=01;35:*.pcx=01;35:*.pbm=01;35:*.pgm=01;35:*.png=01;35:*.ppm=01;35:*.tga=01;35:*.tif=01;35:*.xbm=01;35:*.xpm=01;35:*.dl=01;35:*.gl=01;35:*.wmv=01;35:*.aiff=00;32:*.au=00;32:*.mid=00;32:*.mp3=00;32:*.ogg=00;32:*.voc=00;32:*.wav=00;32:'
+export COLORS
+
+LANG='POSIX'
+export LANG
+
+LESS_ADVANCED_PREPROCESSOR='no'
+export LESS_ADVANCED_PREPROCESSOR
+
+LC_CTYPE='en_US.UTF-8'
+export LC_CTYPE
+
+COLORTERM=1
+export COLORTERM
+
+alias less='less -M -I -R'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias beep='echo -en "\007"'
+alias cd..='cd ..'
+alias dir='ls -l'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias grep='grep --color=auto'
+alias ls='ls -A -N --color=tty -T 0'
+alias ll='ls -l -A -N --color=tty -T 0'
+alias l='ls -A -N --color=tty -T 0'
+alias la='ls -A -N --color=tty -T 0'
+alias ls-l='ls -l -A -N --color=tty -T 0'
+alias md='mkdir -p'
+alias rd='rmdir'
+alias rehash='hash -r'
+alias more='more -sl'
+alias vi='vim'
+#alias ssh='ssh -q -o StrictHostKeyChecking=no -o ConnectTimeout=5'
+
+test -s /etc/profile.d/colorls.sh && . /etc/profile.d/colorls.sh
+test -s /etc/profile.d/colorgrep.sh && . /etc/profile.d/colorgrep.sh
+test -s /etc/profile.d/lscolor.sh && . /etc/profile.d/lscolor.sh
+test -s /etc/profile.d/ps1.sh && . /etc/profile.d/ps1.sh
+test -s /etc/profile.d/alias.sh && . /etc/profile.d/alias.sh
+test -s /etc/profile.d/vim.sh && . /etc/profile.d/vim.sh
+ENDOF.bashrc
+
+cat << 'ENDOFNOFILECONF' > '/etc/security/limits.d/21-nofile.conf'
+*               soft    nofile          65536
+*               hard    nofile          65536
+ENDOFNOFILECONF
+
+cat << 'ENDOFAUDITCONFIG' > '/etc/audit/rules.d/audit.rules'
+-D
+-b 8192
+-f 1
+-w /etc/nsswitch.conf -p wa -k auth
+-w /etc/sssd/sssd.conf -p wa -k auth
+-w /etc/samba/smb.conf -p wa -k auth
+-w /etc/krb5.conf -p wa -k auth
+-w /etc/sudoers -p wa -k auth
+-w /etc/selinux -p wa -k security
+-w /etc/hosts.allow -p wa -k security
+-w /etc/hosts.deny -p wa -k security
+-w /etc/crontab -p wa -k cron
+-w /etc/cron.d -p wa -k cron
+-w /etc/cron.hourly -p wa -k cron
+-w /etc/cron.weekly -p wa -k cron
+-w /etc/cron.monthly -p wa -k cron
+-w /etc/localtime -p wa -k timezone
+-w /etc/fstab -p wa -k mounts
+-w /etc/auto.master -p wa -k automounts
+-w /etc/auto.home -p wa -k automounts
+-w /etc/exports -p wa -k nfsexports
+-w /etc/auto.master.d -p wa -k automounts
+-w /bin/su -p x -k escalaton
+-w /usr/bin/sudo -p x -k escalation
+-w /usr/lib/systemd/system -p wa -k autostarts
+-w /etc/systemd/system -p wa -k autostarts
+-w /etc/init.d -p wa -k autostarts
+-w /etc/xinetd.d -p wa -k xinetconfig
+-w /etc/ld.so.conf -p wa -k liblinker
+-w /etc/ld.so.conf.d -p wa -k liblinker
+-w /etc/issue -p wa -k netmods
+-w /etc/issue.net -p wa -k netmods
+-w /etc/hosts -p wa -k netmods
+-w /etc/sysconfig/network-scripts -p wa -k netmods
+-w /etc/resolv.conf -p wa -k netmods
+-w /sbin/shutdown -p x -k power
+-w /sbin/poweroff -p x -k power
+-w /sbin/reboot -p x -k power
+-w /sbin/halt -p x -k power
+-w /etc/profile.d -p wa -k profiles
+-w /etc/bashrc -p wa -k profiles
+-w /etc/profile -p wa -k profiles
+-w /etc/shells -p wa -k profiles
+-w /etc/ssh/sshd_config -p wa -k ssh
+-w /etc/ssh/ssh_config -p wa -k ssh
+-w /etc/ssh/sshd_banner -p wa -k ssh
+-w /etc/sysctl.conf -p wa -k kernelmods
+-w /etc/login.defs -p wa -k login
+-w /etc/securetty -p wa -k login
+-a always,exit -F arch=b32 -S stime,settimeofday,adjtimex -F key=timechange
+-a always,exit -F arch=b32 -S clock_settime -F key=timechange
+-a always,exit -F arch=b64 -S adjtimex,settimeofday -F key=timechange
+-a always,exit -F arch=b64 -S clock_settime -F key=timechange
+-a always,exclude -F msgtype=CWD
+-e 1
+ENDOFAUDITCONFIG
+cat << 'ENDOFAUDITCONFIG' > '/etc/audit/audit.rules'
+## This file is automatically generated from /etc/audit/rules.d
+-D
+-b 8192
+-f 1
+-w /etc/nsswitch.conf -p wa -k auth
+-w /etc/sssd/sssd.conf -p wa -k auth
+-w /etc/samba/smb.conf -p wa -k auth
+-w /etc/krb5.conf -p wa -k auth
+-w /etc/sudoers -p wa -k auth
+-w /etc/selinux -p wa -k security
+-w /etc/hosts.allow -p wa -k security
+-w /etc/hosts.deny -p wa -k security
+-w /etc/crontab -p wa -k cron
+-w /etc/cron.d -p wa -k cron
+-w /etc/cron.hourly -p wa -k cron
+-w /etc/cron.weekly -p wa -k cron
+-w /etc/cron.monthly -p wa -k cron
+-w /etc/localtime -p wa -k timezone
+-w /etc/fstab -p wa -k mounts
+-w /etc/auto.master -p wa -k automounts
+-w /etc/auto.home -p wa -k automounts
+-w /etc/exports -p wa -k nfsexports
+-w /etc/auto.master.d -p wa -k automounts
+-w /bin/su -p x -k escalaton
+-w /usr/bin/sudo -p x -k escalation
+-w /usr/lib/systemd/system -p wa -k autostarts
+-w /etc/systemd/system -p wa -k autostarts
+-w /etc/init.d -p wa -k autostarts
+-w /etc/xinetd.d -p wa -k xinetconfig
+-w /etc/ld.so.conf -p wa -k liblinker
+-w /etc/ld.so.conf.d -p wa -k liblinker
+-w /etc/issue -p wa -k netmods
+-w /etc/issue.net -p wa -k netmods
+-w /etc/hosts -p wa -k netmods
+-w /etc/sysconfig/network-scripts -p wa -k netmods
+-w /etc/resolv.conf -p wa -k netmods
+-w /sbin/shutdown -p x -k power
+-w /sbin/poweroff -p x -k power
+-w /sbin/reboot -p x -k power
+-w /sbin/halt -p x -k power
+-w /etc/profile.d -p wa -k profiles
+-w /etc/bashrc -p wa -k profiles
+-w /etc/profile -p wa -k profiles
+-w /etc/shells -p wa -k profiles
+-w /etc/ssh/sshd_config -p wa -k ssh
+-w /etc/ssh/ssh_config -p wa -k ssh
+-w /etc/ssh/sshd_banner -p wa -k ssh
+-w /etc/sysctl.conf -p wa -k kernelmods
+-w /etc/login.defs -p wa -k login
+-w /etc/securetty -p wa -k login
+-a always,exit -F arch=b32 -S stime,settimeofday,adjtimex -F key=timechange
+-a always,exit -F arch=b32 -S clock_settime -F key=timechange
+-a always,exit -F arch=b64 -S adjtimex,settimeofday -F key=timechange
+-a always,exit -F arch=b64 -S clock_settime -F key=timechange
+-a always,exclude -F msgtype=CWD
+-e 1
+ENDOFAUDITCONFIG
+
+cat << 'ENDOFEPEL7GPGKEY' >'/etc/pki/rpm-gpg/EPEL-7-Key'
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+mQINBFKuaIQBEAC1UphXwMqCAarPUH/ZsOFslabeTVO2pDk5YnO96f+rgZB7xArB
+OSeQk7B90iqSJ85/c72OAn4OXYvT63gfCeXpJs5M7emXkPsNQWWSju99lW+AqSNm
+jYWhmRlLRGl0OO7gIwj776dIXvcMNFlzSPj00N2xAqjMbjlnV2n2abAE5gq6VpqP
+vFXVyfrVa/ualogDVmf6h2t4Rdpifq8qTHsHFU3xpCz+T6/dGWKGQ42ZQfTaLnDM
+jToAsmY0AyevkIbX6iZVtzGvanYpPcWW4X0RDPcpqfFNZk643xI4lsZ+Y2Er9Yu5
+S/8x0ly+tmmIokaE0wwbdUu740YTZjCesroYWiRg5zuQ2xfKxJoV5E+Eh+tYwGDJ
+n6HfWhRgnudRRwvuJ45ztYVtKulKw8QQpd2STWrcQQDJaRWmnMooX/PATTjCBExB
+9dkz38Druvk7IkHMtsIqlkAOQMdsX1d3Tov6BE2XDjIG0zFxLduJGbVwc/6rIc95
+T055j36Ez0HrjxdpTGOOHxRqMK5m9flFbaxxtDnS7w77WqzW7HjFrD0VeTx2vnjj
+GqchHEQpfDpFOzb8LTFhgYidyRNUflQY35WLOzLNV+pV3eQ3Jg11UFwelSNLqfQf
+uFRGc+zcwkNjHh5yPvm9odR1BIfqJ6sKGPGbtPNXo7ERMRypWyRz0zi0twARAQAB
+tChGZWRvcmEgRVBFTCAoNykgPGVwZWxAZmVkb3JhcHJvamVjdC5vcmc+iQI4BBMB
+AgAiBQJSrmiEAhsPBgsJCAcDAgYVCAIJCgsEFgIDAQIeAQIXgAAKCRBqL66iNSxk
+5cfGD/4spqpsTjtDM7qpytKLHKruZtvuWiqt5RfvT9ww9GUUFMZ4ZZGX4nUXg49q
+ixDLayWR8ddG/s5kyOi3C0uX/6inzaYyRg+Bh70brqKUK14F1BrrPi29eaKfG+Gu
+MFtXdBG2a7OtPmw3yuKmq9Epv6B0mP6E5KSdvSRSqJWtGcA6wRS/wDzXJENHp5re
+9Ism3CYydpy0GLRA5wo4fPB5uLdUhLEUDvh2KK//fMjja3o0L+SNz8N0aDZyn5Ax
+CU9RB3EHcTecFgoy5umRj99BZrebR1NO+4gBrivIfdvD4fJNfNBHXwhSH9ACGCNv
+HnXVjHQF9iHWApKkRIeh8Fr2n5dtfJEF7SEX8GbX7FbsWo29kXMrVgNqHNyDnfAB
+VoPubgQdtJZJkVZAkaHrMu8AytwT62Q4eNqmJI1aWbZQNI5jWYqc6RKuCK6/F99q
+thFT9gJO17+yRuL6Uv2/vgzVR1RGdwVLKwlUjGPAjYflpCQwWMAASxiv9uPyYPHc
+ErSrbRG0wjIfAR3vus1OSOx3xZHZpXFfmQTsDP7zVROLzV98R3JwFAxJ4/xqeON4
+vCPFU6OsT3lWQ8w7il5ohY95wmujfr6lk89kEzJdOTzcn7DBbUru33CQMGKZ3Evt
+RjsC7FDbL017qxS+ZVA/HGkyfiu4cpgV8VUnbql5eAZ+1Ll6Dw==
+=hdPa
+-----END PGP PUBLIC KEY BLOCK-----
+ENDOFEPEL7GPGKEY
+
+cat << 'ENDOFCSPIREINTCA' > '/etc/ssl/certs/CSpire-Enterprise-Int-CA-01.pem'
+subject=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Int CA-01
+issuer=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Root CA-01
+-----BEGIN CERTIFICATE-----
+MIIErDCCA5SgAwIBAgITSAAAAAMQe24ZVr0kVgAAAAAAAzANBgkqhkiG9w0BAQsF
+ADBvMQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcT
+CVJpZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMSUwIwYDVQQDExxDU3BpcmUgRW50
+ZXJwcmlzZSBSb290IENBLTAxMB4XDTE2MDkwOTIwMzEyOFoXDTIxMDkwOTIwNDEy
+OFowbjELMAkGA1UEBhMCVVMxFDASBgNVBAgTC01pc3Npc3NpcHBpMRIwEAYDVQQH
+EwlSaWRnZWxhbmQxDzANBgNVBAoTBkNTcGlyZTEkMCIGA1UEAxMbQ1NwaXJlIEVu
+dGVycHJpc2UgSW50IENBLTAxMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC
+AQEAszG6CIzlLrCnwnwWj6VbnSeTOwgvbckfW5ZLboRSl9JSSJDuYFoJ3tEqmngs
+WYE3/2CgwYQFytL4oN7RZZNMvUjuyGVFBouITl/A/Wp7mSXY/3boSidfILM3GT4Z
+/XBpQAV39RNsPQtqVAVpK6OJihgQWQomnLe86jRvFvoL+GmvnoiTchIQtKEwyCea
+YUVRmbTpm+R1UTGhxhWci7XIP7jYR+wNI08FOfO+nkHpvyDsUPnj6EfC8wHvjs8y
+CIKILGZPLyYUy7+vwBgq7L6gLoNe3/1/yRniDUVwbGr819mjSLbpJHgNCGOuXkXR
+f+GiOzqtBq0agdo5142yBuKowwIDAQABo4IBQDCCATwwEAYJKwYBBAGCNxUBBAMC
+AQEwIwYJKwYBBAGCNxUCBBYEFNavOKWmfmmvkXLzRAV2KF2oPIx+MB0GA1UdDgQW
+BBRpaqTulEWKimRKBhiL3weWAJQ1CTAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMA
+QTALBgNVHQ8EBAMCAYYwEgYDVR0TAQH/BAgwBgEB/wIBADAfBgNVHSMEGDAWgBQH
+6qOl2iYRyL4RuuSHQjVJEk1c2TA9BgNVHR8ENjA0MDKgMKAuhixodHRwOi8vcGtp
+LmNvcnAud2FuL2NybC9jcy1lbnQtcm9vdC1jYTAxLmNybDBIBggrBgEFBQcBAQQ8
+MDowOAYIKwYBBQUHMAKGLGh0dHA6Ly9wa2kuY29ycC53YW4vY3J0L2NzLWVudC1y
+b290LWNhMDEuY3J0MA0GCSqGSIb3DQEBCwUAA4IBAQAYnBsTCFWfzJSJ8Gk2RHuC
+J3nABh4W4M0fUj09ZIHcqyEJ8ToHx9E/dfXrBfxyX8V8bU7xGBbJ7wncGwEg5f6L
+XCdszVo5uRom4Zbl73q2dG/T13/HB6R1YGmYHVKAcwBKozqhD5QgVU5BbMd3soEK
+bVO8rI+R88MssQ3V3wBlSdwhyFfibSQb2LPIOL3ymkagvelKELVhmtQB45zJ6s2X
+CgLUQFKminlK+ahD0uiMHlP/Eo/g+xU2HqjYp0qVUxanWyUf5u8XfpnCRR7jafWM
+t2sq2ASN7BsBNFFKllrL83q+SBW11SnReP3kXPjwSATWPvEx4rds6JIvS+N2E8Vh
+-----END CERTIFICATE-----
+subject=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Root CA-01
+issuer=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Root CA-01
+-----BEGIN CERTIFICATE-----
+MIIMATCCCumgAwIBAgIQMUb49lv+gYxKH6YMXmhNXjANBgkqhkiG9w0BAQsFADBv
+MQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcTCVJp
+ZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMSUwIwYDVQQDExxDU3BpcmUgRW50ZXJw
+cmlzZSBSb290IENBLTAxMB4XDTE2MDkwOTE0MzIyMVoXDTI2MDkwOTE0NDIyMVow
+bzELMAkGA1UEBhMCVVMxFDASBgNVBAgTC01pc3Npc3NpcHBpMRIwEAYDVQQHEwlS
+aWRnZWxhbmQxDzANBgNVBAoTBkNTcGlyZTElMCMGA1UEAxMcQ1NwaXJlIEVudGVy
+cHJpc2UgUm9vdCBDQS0wMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
+AO3jASbX+aNjuGUyUo/chAjNjGNeGaUusS7iiuH7XQ4U6Vpol7WRV7Q8LWz2B54R
+DNtee7uOJw9pnpO2nHjcoF61GAsItWseM2iw3OlKB9q9uJXsmVR5P4Rjk1iHEUbI
+ILuAOFk2KALILYObwhpQG24LvcZXYfwMclOS+Spvku0LPZ7MRdUF9zw7JjZoKziW
+t+hPKHwB4Nxx1DhWlmK7sjZtGwk2zpqlQoU5/1Zef8b8L/m8W4NHhBmzkTgb7WZr
+PosfFin2WfiEXLJ7MdEnOPLloE9L95QoWDHQZJB+jUt9uS1Nknj3NGWsRp5dr7NN
+7I8Btx/eYJujpDHgYV+KPvECAwEAAaOCCJcwggiTMAsGA1UdDwQEAwIBhjASBgNV
+HRMBAf8ECDAGAQH/AgEBMB0GA1UdDgQWBBQH6qOl2iYRyL4RuuSHQjVJEk1c2TAQ
+BgkrBgEEAYI3FQEEAwIBADCCCD0GA1UdIASCCDQwgggwMIIILAYGKQEBAQEBMIII
+IDCCCBwGCCsGAQUFBwICMIIIDh6CCAoAVABoAGkAcwAgAGMAbwBtAHAAdQB0AGUA
+cgAgAHMAeQBzAHQAZQBtACwAIABpAG4AYwBsAHUAZABpAG4AZwAgAGEAbABsACAA
+cgBlAGwAYQB0AGUAZAAgAGUAcQB1AGkAcABtAGUAbgB0ACwAIABuAGUAdAB3AG8A
+cgBrAHMALAAgAGEAbgBkACAAbgBlAHQAdwBvAHIAawAgAGQAZQB2AGkAYwBlAHMA
+IABhAHIAZQAgAHAAcgBvAHYAaQBkAGUAZAAgAG8AbgBsAHkAIABmAG8AcgAgAGEA
+dQB0AGgAbwByAGkAegBlAGQAIABDACAAUwBwAGkAcgBlACAAYgB1AHMAaQBuAGUA
+cwBzACAAdQBzAGUALgAgACAAQwAgAFMAcABpAHIAZQAgAGMAbwBtAHAAdQB0AGUA
+cgAgAHMAeQBzAHQAZQBtAHMAIABtAGEAeQAgAGIAZQAgAG0AbwBuAGkAdABvAHIA
+ZQBkACAAZgBvAHIAIABhAGwAbAAgAGwAYQB3AGYAdQBsACAAcAB1AHIAcABvAHMA
+ZQBzACwAIABpAG4AYwBsAHUAZABpAG4AZwAgAHQAbwAgAGUAbgBzAHUAcgBlACAA
+dABoAGEAdAAgAHQAaABlAGkAcgAgAHUAcwBlACAAaQBzACAAYQB1AHQAaABvAHIA
+aQB6AGUAZAAsACAAZgBvAHIAIABtAGEAbgBhAGcAZQBtAGUAbgB0ACAAbwBmACAA
+dABoAGUAIABzAHkAcwB0AGUAbQAsACAAdABvACAAZgBhAGMAaQBsAGkAdABhAHQA
+ZQAgAHAAcgBvAHQAZQBjAHQAaQBvAG4AIABhAGcAYQBpAG4AcwB0ACAAdQBuAGEA
+dQB0AGgAbwByAGkAegBlAGQAIABhAGMAYwBlAHMAcwAsACAAYQBuAGQAIAB0AG8A
+IAB2AGUAcgBpAGYAeQAgAHMAZQBjAHUAcgBpAHQAeQAgAHAAcgBvAGMAZQBkAHUA
+cgBlAHMALAAgAHMAdQByAHYAaQB2AGEAYgBpAGwAaQB0AHkALAAgAGEAbgBkACAA
+bwBwAGUAcgBhAHQAaQBvAG4AYQBsACAAcwBlAGMAdQByAGkAdAB5AC4AIAAgAE0A
+bwBuAGkAdABvAHIAaQBuAGcAIABpAG4AYwBsAHUAZABlAHMAIABhAGMAdABpAHYA
+ZQAgAGEAbgBkACAAcABhAHMAcwBpAHYAZQAgAGMAaABlAGMAawBzACAAYgB5ACAA
+YQB1AHQAaABvAHIAaQB6AGUAZAAgAEMAIABTAHAAaQByAGUAIABlAG4AdABpAHQA
+aQBlAHMAIAB0AG8AIAB0AGUAcwB0ACwAIABvAHIAIAB2AGUAcgBpAGYAeQAgAHQA
+aABlACAAaABlAGEAbAB0AGgAIABhAG4AZAAgAHMAZQBjAHUAcgBpAHQAeQAgAG8A
+ZgAgAHQAaABpAHMAIABzAHkAcwB0AGUAbQAuACAAIABEAHUAcgBpAG4AZwAgAG0A
+bwBuAGkAdABvAHIAaQBuAGcALAAgAGkAbgBmAG8AcgBtAGEAdABpAG8AbgAgAG0A
+YQB5ACAAYgBlACAAZQB4AGEAbQBpAG4AZQBkACwAIAByAGUAYwBvAHIAZABlAGQA
+LAAgAGMAbwBwAGkAZQBkACAAYQBuAGQAIAB1AHMAZQBkACAAZgBvAHIAIABhAHUA
+dABoAG8AcgBpAHoAZQBkACAAcAB1AHIAcABvAHMAZQBzAC4AIAAgAFUAcwBlACAA
+bwBmACAAdABoAGkAcwAgAEMAIABTAHAAaQByAGUAIABjAG8AbQBwAHUAdABlAHIA
+IABzAHkAcwB0AGUAbQAsACAAYQB1AHQAaABvAHIAaQB6AGUAZAAsACAAbwByACAA
+dQBuAGEAdQB0AGgAbwByAGkAegBlAGQALAAgAGMAbwBuAHMAdABpAHQAdQB0AGUA
+cwAgAGMAbwBuAHMAZQBuAHQAIAB0AG8AIABtAG8AbgBpAHQAbwByAGkAbgBnACAA
+bwBmACAAdABoAGkAcwAgAHMAeQBzAHQAZQBtAC4AIAAgAFUAbgBhAHUAdABoAG8A
+cgBpAHoAZQBkACAAdQBzAGUAIABtAGEAeQAgAHMAdQBiAGoAZQBjAHQAIAB5AG8A
+dQAgAHQAbwAgAGMAcgBpAG0AaQBuAGEAbAAgAHAAcgBvAHMAZQBjAHUAdABpAG8A
+bgAuACAAIABFAHYAaQBkAGUAbgBjAGUAIABvAGYAIAB1AG4AYQB1AHQAaABvAHIA
+aQB6AGUAZAAgAHUAcwBlACAAYwBvAGwAbABlAGMAdABlAGQAIABkAHUAcgBpAG4A
+ZwAgAG0AbwBuAGkAdABvAHIAaQBuAGcAIABtAGEAeQAgAGIAZQAgAHUAcwBlAGQA
+IABmAG8AcgAgAGEAZABtAGkAbgBpAHMAdAByAGEAdABpAHYAZQAsACAAYwByAGkA
+bQBpAG4AYQBsACwAIABvAHIAIABvAHQAaABlAHIAIABhAGQAdgBlAHIAcwBlACAA
+YQBjAHQAaQBvAG4ALgAgACAAVQBzAGUAIABvAGYAIAB0AGgAaQBzACAAcwB5AHMA
+dABlAG0AIABjAG8AbgBzAHQAaQB0AHUAdABlAHMAIABjAG8AbgBzAGUAbgB0ACAA
+dABvACAAbQBvAG4AaQB0AG8AcgBpAG4AZwAgAGYAbwByACAAdABoAGUAcwBlACAA
+cAB1AHIAcABvAHMAZQBzAC4wDQYJKoZIhvcNAQELBQADggEBANoXbn354is3hLS4
+Z7Cll0ofQqyIe2yn4VvUf4AJfUyFskV3REUHXXo1oTEpBjUShNdMlNJsmrtCEgC2
+5w/HINgO2tBsxeTjmHxLB2VCQ0faqNhmrK1AQRTq0qVG5mRfD5nDj/M49ahcR2in
+/chpJe05gf1e7uBkVcggTM1M0XIcI9WHZGbCRrS24O/bHQnKkukwXV2WVlzwWi1v
+xNuj0R2fFcpHOrHd468XOVFFelAQCiH4ExwVswLW85rpf4udWENcP+3IDRt1K9tL
+DLWBfZKY1atu8d9ChdB5vdWg0lZBaCaBkshQmRVrHbLPTV1UHFOxkpxqoTV4noNB
+7EGLSbA=
+-----END CERTIFICATE-----
+ENDOFCSPIREINTCA
+
+cat << 'ENDOFCSPIREINTCA' > '/etc/pki/ca-trust/source/anchors/CSpire-Enterprise-Int-CA-01.pem'
+subject=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Int CA-01
+issuer=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Root CA-01
+-----BEGIN CERTIFICATE-----
+MIIErDCCA5SgAwIBAgITSAAAAAMQe24ZVr0kVgAAAAAAAzANBgkqhkiG9w0BAQsF
+ADBvMQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcT
+CVJpZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMSUwIwYDVQQDExxDU3BpcmUgRW50
+ZXJwcmlzZSBSb290IENBLTAxMB4XDTE2MDkwOTIwMzEyOFoXDTIxMDkwOTIwNDEy
+OFowbjELMAkGA1UEBhMCVVMxFDASBgNVBAgTC01pc3Npc3NpcHBpMRIwEAYDVQQH
+EwlSaWRnZWxhbmQxDzANBgNVBAoTBkNTcGlyZTEkMCIGA1UEAxMbQ1NwaXJlIEVu
+dGVycHJpc2UgSW50IENBLTAxMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC
+AQEAszG6CIzlLrCnwnwWj6VbnSeTOwgvbckfW5ZLboRSl9JSSJDuYFoJ3tEqmngs
+WYE3/2CgwYQFytL4oN7RZZNMvUjuyGVFBouITl/A/Wp7mSXY/3boSidfILM3GT4Z
+/XBpQAV39RNsPQtqVAVpK6OJihgQWQomnLe86jRvFvoL+GmvnoiTchIQtKEwyCea
+YUVRmbTpm+R1UTGhxhWci7XIP7jYR+wNI08FOfO+nkHpvyDsUPnj6EfC8wHvjs8y
+CIKILGZPLyYUy7+vwBgq7L6gLoNe3/1/yRniDUVwbGr819mjSLbpJHgNCGOuXkXR
+f+GiOzqtBq0agdo5142yBuKowwIDAQABo4IBQDCCATwwEAYJKwYBBAGCNxUBBAMC
+AQEwIwYJKwYBBAGCNxUCBBYEFNavOKWmfmmvkXLzRAV2KF2oPIx+MB0GA1UdDgQW
+BBRpaqTulEWKimRKBhiL3weWAJQ1CTAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMA
+QTALBgNVHQ8EBAMCAYYwEgYDVR0TAQH/BAgwBgEB/wIBADAfBgNVHSMEGDAWgBQH
+6qOl2iYRyL4RuuSHQjVJEk1c2TA9BgNVHR8ENjA0MDKgMKAuhixodHRwOi8vcGtp
+LmNvcnAud2FuL2NybC9jcy1lbnQtcm9vdC1jYTAxLmNybDBIBggrBgEFBQcBAQQ8
+MDowOAYIKwYBBQUHMAKGLGh0dHA6Ly9wa2kuY29ycC53YW4vY3J0L2NzLWVudC1y
+b290LWNhMDEuY3J0MA0GCSqGSIb3DQEBCwUAA4IBAQAYnBsTCFWfzJSJ8Gk2RHuC
+J3nABh4W4M0fUj09ZIHcqyEJ8ToHx9E/dfXrBfxyX8V8bU7xGBbJ7wncGwEg5f6L
+XCdszVo5uRom4Zbl73q2dG/T13/HB6R1YGmYHVKAcwBKozqhD5QgVU5BbMd3soEK
+bVO8rI+R88MssQ3V3wBlSdwhyFfibSQb2LPIOL3ymkagvelKELVhmtQB45zJ6s2X
+CgLUQFKminlK+ahD0uiMHlP/Eo/g+xU2HqjYp0qVUxanWyUf5u8XfpnCRR7jafWM
+t2sq2ASN7BsBNFFKllrL83q+SBW11SnReP3kXPjwSATWPvEx4rds6JIvS+N2E8Vh
+-----END CERTIFICATE-----
+subject=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Root CA-01
+issuer=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Root CA-01
+-----BEGIN CERTIFICATE-----
+MIIMATCCCumgAwIBAgIQMUb49lv+gYxKH6YMXmhNXjANBgkqhkiG9w0BAQsFADBv
+MQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcTCVJp
+ZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMSUwIwYDVQQDExxDU3BpcmUgRW50ZXJw
+cmlzZSBSb290IENBLTAxMB4XDTE2MDkwOTE0MzIyMVoXDTI2MDkwOTE0NDIyMVow
+bzELMAkGA1UEBhMCVVMxFDASBgNVBAgTC01pc3Npc3NpcHBpMRIwEAYDVQQHEwlS
+aWRnZWxhbmQxDzANBgNVBAoTBkNTcGlyZTElMCMGA1UEAxMcQ1NwaXJlIEVudGVy
+cHJpc2UgUm9vdCBDQS0wMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
+AO3jASbX+aNjuGUyUo/chAjNjGNeGaUusS7iiuH7XQ4U6Vpol7WRV7Q8LWz2B54R
+DNtee7uOJw9pnpO2nHjcoF61GAsItWseM2iw3OlKB9q9uJXsmVR5P4Rjk1iHEUbI
+ILuAOFk2KALILYObwhpQG24LvcZXYfwMclOS+Spvku0LPZ7MRdUF9zw7JjZoKziW
+t+hPKHwB4Nxx1DhWlmK7sjZtGwk2zpqlQoU5/1Zef8b8L/m8W4NHhBmzkTgb7WZr
+PosfFin2WfiEXLJ7MdEnOPLloE9L95QoWDHQZJB+jUt9uS1Nknj3NGWsRp5dr7NN
+7I8Btx/eYJujpDHgYV+KPvECAwEAAaOCCJcwggiTMAsGA1UdDwQEAwIBhjASBgNV
+HRMBAf8ECDAGAQH/AgEBMB0GA1UdDgQWBBQH6qOl2iYRyL4RuuSHQjVJEk1c2TAQ
+BgkrBgEEAYI3FQEEAwIBADCCCD0GA1UdIASCCDQwgggwMIIILAYGKQEBAQEBMIII
+IDCCCBwGCCsGAQUFBwICMIIIDh6CCAoAVABoAGkAcwAgAGMAbwBtAHAAdQB0AGUA
+cgAgAHMAeQBzAHQAZQBtACwAIABpAG4AYwBsAHUAZABpAG4AZwAgAGEAbABsACAA
+cgBlAGwAYQB0AGUAZAAgAGUAcQB1AGkAcABtAGUAbgB0ACwAIABuAGUAdAB3AG8A
+cgBrAHMALAAgAGEAbgBkACAAbgBlAHQAdwBvAHIAawAgAGQAZQB2AGkAYwBlAHMA
+IABhAHIAZQAgAHAAcgBvAHYAaQBkAGUAZAAgAG8AbgBsAHkAIABmAG8AcgAgAGEA
+dQB0AGgAbwByAGkAegBlAGQAIABDACAAUwBwAGkAcgBlACAAYgB1AHMAaQBuAGUA
+cwBzACAAdQBzAGUALgAgACAAQwAgAFMAcABpAHIAZQAgAGMAbwBtAHAAdQB0AGUA
+cgAgAHMAeQBzAHQAZQBtAHMAIABtAGEAeQAgAGIAZQAgAG0AbwBuAGkAdABvAHIA
+ZQBkACAAZgBvAHIAIABhAGwAbAAgAGwAYQB3AGYAdQBsACAAcAB1AHIAcABvAHMA
+ZQBzACwAIABpAG4AYwBsAHUAZABpAG4AZwAgAHQAbwAgAGUAbgBzAHUAcgBlACAA
+dABoAGEAdAAgAHQAaABlAGkAcgAgAHUAcwBlACAAaQBzACAAYQB1AHQAaABvAHIA
+aQB6AGUAZAAsACAAZgBvAHIAIABtAGEAbgBhAGcAZQBtAGUAbgB0ACAAbwBmACAA
+dABoAGUAIABzAHkAcwB0AGUAbQAsACAAdABvACAAZgBhAGMAaQBsAGkAdABhAHQA
+ZQAgAHAAcgBvAHQAZQBjAHQAaQBvAG4AIABhAGcAYQBpAG4AcwB0ACAAdQBuAGEA
+dQB0AGgAbwByAGkAegBlAGQAIABhAGMAYwBlAHMAcwAsACAAYQBuAGQAIAB0AG8A
+IAB2AGUAcgBpAGYAeQAgAHMAZQBjAHUAcgBpAHQAeQAgAHAAcgBvAGMAZQBkAHUA
+cgBlAHMALAAgAHMAdQByAHYAaQB2AGEAYgBpAGwAaQB0AHkALAAgAGEAbgBkACAA
+bwBwAGUAcgBhAHQAaQBvAG4AYQBsACAAcwBlAGMAdQByAGkAdAB5AC4AIAAgAE0A
+bwBuAGkAdABvAHIAaQBuAGcAIABpAG4AYwBsAHUAZABlAHMAIABhAGMAdABpAHYA
+ZQAgAGEAbgBkACAAcABhAHMAcwBpAHYAZQAgAGMAaABlAGMAawBzACAAYgB5ACAA
+YQB1AHQAaABvAHIAaQB6AGUAZAAgAEMAIABTAHAAaQByAGUAIABlAG4AdABpAHQA
+aQBlAHMAIAB0AG8AIAB0AGUAcwB0ACwAIABvAHIAIAB2AGUAcgBpAGYAeQAgAHQA
+aABlACAAaABlAGEAbAB0AGgAIABhAG4AZAAgAHMAZQBjAHUAcgBpAHQAeQAgAG8A
+ZgAgAHQAaABpAHMAIABzAHkAcwB0AGUAbQAuACAAIABEAHUAcgBpAG4AZwAgAG0A
+bwBuAGkAdABvAHIAaQBuAGcALAAgAGkAbgBmAG8AcgBtAGEAdABpAG8AbgAgAG0A
+YQB5ACAAYgBlACAAZQB4AGEAbQBpAG4AZQBkACwAIAByAGUAYwBvAHIAZABlAGQA
+LAAgAGMAbwBwAGkAZQBkACAAYQBuAGQAIAB1AHMAZQBkACAAZgBvAHIAIABhAHUA
+dABoAG8AcgBpAHoAZQBkACAAcAB1AHIAcABvAHMAZQBzAC4AIAAgAFUAcwBlACAA
+bwBmACAAdABoAGkAcwAgAEMAIABTAHAAaQByAGUAIABjAG8AbQBwAHUAdABlAHIA
+IABzAHkAcwB0AGUAbQAsACAAYQB1AHQAaABvAHIAaQB6AGUAZAAsACAAbwByACAA
+dQBuAGEAdQB0AGgAbwByAGkAegBlAGQALAAgAGMAbwBuAHMAdABpAHQAdQB0AGUA
+cwAgAGMAbwBuAHMAZQBuAHQAIAB0AG8AIABtAG8AbgBpAHQAbwByAGkAbgBnACAA
+bwBmACAAdABoAGkAcwAgAHMAeQBzAHQAZQBtAC4AIAAgAFUAbgBhAHUAdABoAG8A
+cgBpAHoAZQBkACAAdQBzAGUAIABtAGEAeQAgAHMAdQBiAGoAZQBjAHQAIAB5AG8A
+dQAgAHQAbwAgAGMAcgBpAG0AaQBuAGEAbAAgAHAAcgBvAHMAZQBjAHUAdABpAG8A
+bgAuACAAIABFAHYAaQBkAGUAbgBjAGUAIABvAGYAIAB1AG4AYQB1AHQAaABvAHIA
+aQB6AGUAZAAgAHUAcwBlACAAYwBvAGwAbABlAGMAdABlAGQAIABkAHUAcgBpAG4A
+ZwAgAG0AbwBuAGkAdABvAHIAaQBuAGcAIABtAGEAeQAgAGIAZQAgAHUAcwBlAGQA
+IABmAG8AcgAgAGEAZABtAGkAbgBpAHMAdAByAGEAdABpAHYAZQAsACAAYwByAGkA
+bQBpAG4AYQBsACwAIABvAHIAIABvAHQAaABlAHIAIABhAGQAdgBlAHIAcwBlACAA
+YQBjAHQAaQBvAG4ALgAgACAAVQBzAGUAIABvAGYAIAB0AGgAaQBzACAAcwB5AHMA
+dABlAG0AIABjAG8AbgBzAHQAaQB0AHUAdABlAHMAIABjAG8AbgBzAGUAbgB0ACAA
+dABvACAAbQBvAG4AaQB0AG8AcgBpAG4AZwAgAGYAbwByACAAdABoAGUAcwBlACAA
+cAB1AHIAcABvAHMAZQBzAC4wDQYJKoZIhvcNAQELBQADggEBANoXbn354is3hLS4
+Z7Cll0ofQqyIe2yn4VvUf4AJfUyFskV3REUHXXo1oTEpBjUShNdMlNJsmrtCEgC2
+5w/HINgO2tBsxeTjmHxLB2VCQ0faqNhmrK1AQRTq0qVG5mRfD5nDj/M49ahcR2in
+/chpJe05gf1e7uBkVcggTM1M0XIcI9WHZGbCRrS24O/bHQnKkukwXV2WVlzwWi1v
+xNuj0R2fFcpHOrHd468XOVFFelAQCiH4ExwVswLW85rpf4udWENcP+3IDRt1K9tL
+DLWBfZKY1atu8d9ChdB5vdWg0lZBaCaBkshQmRVrHbLPTV1UHFOxkpxqoTV4noNB
+7EGLSbA=
+-----END CERTIFICATE-----
+ENDOFCSPIREINTCA
+
+cat << 'ENDOFCSPIREROOTCA' > '/etc/pki/ca-trust/source/anchors/CSpire-Enterprise-Root-CA-01.pem'
+subject=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Root CA-01
+issuer=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Root CA-01
+-----BEGIN CERTIFICATE-----
+MIIMATCCCumgAwIBAgIQMUb49lv+gYxKH6YMXmhNXjANBgkqhkiG9w0BAQsFADBv
+MQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcTCVJp
+ZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMSUwIwYDVQQDExxDU3BpcmUgRW50ZXJw
+cmlzZSBSb290IENBLTAxMB4XDTE2MDkwOTE0MzIyMVoXDTI2MDkwOTE0NDIyMVow
+bzELMAkGA1UEBhMCVVMxFDASBgNVBAgTC01pc3Npc3NpcHBpMRIwEAYDVQQHEwlS
+aWRnZWxhbmQxDzANBgNVBAoTBkNTcGlyZTElMCMGA1UEAxMcQ1NwaXJlIEVudGVy
+cHJpc2UgUm9vdCBDQS0wMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
+AO3jASbX+aNjuGUyUo/chAjNjGNeGaUusS7iiuH7XQ4U6Vpol7WRV7Q8LWz2B54R
+DNtee7uOJw9pnpO2nHjcoF61GAsItWseM2iw3OlKB9q9uJXsmVR5P4Rjk1iHEUbI
+ILuAOFk2KALILYObwhpQG24LvcZXYfwMclOS+Spvku0LPZ7MRdUF9zw7JjZoKziW
+t+hPKHwB4Nxx1DhWlmK7sjZtGwk2zpqlQoU5/1Zef8b8L/m8W4NHhBmzkTgb7WZr
+PosfFin2WfiEXLJ7MdEnOPLloE9L95QoWDHQZJB+jUt9uS1Nknj3NGWsRp5dr7NN
+7I8Btx/eYJujpDHgYV+KPvECAwEAAaOCCJcwggiTMAsGA1UdDwQEAwIBhjASBgNV
+HRMBAf8ECDAGAQH/AgEBMB0GA1UdDgQWBBQH6qOl2iYRyL4RuuSHQjVJEk1c2TAQ
+BgkrBgEEAYI3FQEEAwIBADCCCD0GA1UdIASCCDQwgggwMIIILAYGKQEBAQEBMIII
+IDCCCBwGCCsGAQUFBwICMIIIDh6CCAoAVABoAGkAcwAgAGMAbwBtAHAAdQB0AGUA
+cgAgAHMAeQBzAHQAZQBtACwAIABpAG4AYwBsAHUAZABpAG4AZwAgAGEAbABsACAA
+cgBlAGwAYQB0AGUAZAAgAGUAcQB1AGkAcABtAGUAbgB0ACwAIABuAGUAdAB3AG8A
+cgBrAHMALAAgAGEAbgBkACAAbgBlAHQAdwBvAHIAawAgAGQAZQB2AGkAYwBlAHMA
+IABhAHIAZQAgAHAAcgBvAHYAaQBkAGUAZAAgAG8AbgBsAHkAIABmAG8AcgAgAGEA
+dQB0AGgAbwByAGkAegBlAGQAIABDACAAUwBwAGkAcgBlACAAYgB1AHMAaQBuAGUA
+cwBzACAAdQBzAGUALgAgACAAQwAgAFMAcABpAHIAZQAgAGMAbwBtAHAAdQB0AGUA
+cgAgAHMAeQBzAHQAZQBtAHMAIABtAGEAeQAgAGIAZQAgAG0AbwBuAGkAdABvAHIA
+ZQBkACAAZgBvAHIAIABhAGwAbAAgAGwAYQB3AGYAdQBsACAAcAB1AHIAcABvAHMA
+ZQBzACwAIABpAG4AYwBsAHUAZABpAG4AZwAgAHQAbwAgAGUAbgBzAHUAcgBlACAA
+dABoAGEAdAAgAHQAaABlAGkAcgAgAHUAcwBlACAAaQBzACAAYQB1AHQAaABvAHIA
+aQB6AGUAZAAsACAAZgBvAHIAIABtAGEAbgBhAGcAZQBtAGUAbgB0ACAAbwBmACAA
+dABoAGUAIABzAHkAcwB0AGUAbQAsACAAdABvACAAZgBhAGMAaQBsAGkAdABhAHQA
+ZQAgAHAAcgBvAHQAZQBjAHQAaQBvAG4AIABhAGcAYQBpAG4AcwB0ACAAdQBuAGEA
+dQB0AGgAbwByAGkAegBlAGQAIABhAGMAYwBlAHMAcwAsACAAYQBuAGQAIAB0AG8A
+IAB2AGUAcgBpAGYAeQAgAHMAZQBjAHUAcgBpAHQAeQAgAHAAcgBvAGMAZQBkAHUA
+cgBlAHMALAAgAHMAdQByAHYAaQB2AGEAYgBpAGwAaQB0AHkALAAgAGEAbgBkACAA
+bwBwAGUAcgBhAHQAaQBvAG4AYQBsACAAcwBlAGMAdQByAGkAdAB5AC4AIAAgAE0A
+bwBuAGkAdABvAHIAaQBuAGcAIABpAG4AYwBsAHUAZABlAHMAIABhAGMAdABpAHYA
+ZQAgAGEAbgBkACAAcABhAHMAcwBpAHYAZQAgAGMAaABlAGMAawBzACAAYgB5ACAA
+YQB1AHQAaABvAHIAaQB6AGUAZAAgAEMAIABTAHAAaQByAGUAIABlAG4AdABpAHQA
+aQBlAHMAIAB0AG8AIAB0AGUAcwB0ACwAIABvAHIAIAB2AGUAcgBpAGYAeQAgAHQA
+aABlACAAaABlAGEAbAB0AGgAIABhAG4AZAAgAHMAZQBjAHUAcgBpAHQAeQAgAG8A
+ZgAgAHQAaABpAHMAIABzAHkAcwB0AGUAbQAuACAAIABEAHUAcgBpAG4AZwAgAG0A
+bwBuAGkAdABvAHIAaQBuAGcALAAgAGkAbgBmAG8AcgBtAGEAdABpAG8AbgAgAG0A
+YQB5ACAAYgBlACAAZQB4AGEAbQBpAG4AZQBkACwAIAByAGUAYwBvAHIAZABlAGQA
+LAAgAGMAbwBwAGkAZQBkACAAYQBuAGQAIAB1AHMAZQBkACAAZgBvAHIAIABhAHUA
+dABoAG8AcgBpAHoAZQBkACAAcAB1AHIAcABvAHMAZQBzAC4AIAAgAFUAcwBlACAA
+bwBmACAAdABoAGkAcwAgAEMAIABTAHAAaQByAGUAIABjAG8AbQBwAHUAdABlAHIA
+IABzAHkAcwB0AGUAbQAsACAAYQB1AHQAaABvAHIAaQB6AGUAZAAsACAAbwByACAA
+dQBuAGEAdQB0AGgAbwByAGkAegBlAGQALAAgAGMAbwBuAHMAdABpAHQAdQB0AGUA
+cwAgAGMAbwBuAHMAZQBuAHQAIAB0AG8AIABtAG8AbgBpAHQAbwByAGkAbgBnACAA
+bwBmACAAdABoAGkAcwAgAHMAeQBzAHQAZQBtAC4AIAAgAFUAbgBhAHUAdABoAG8A
+cgBpAHoAZQBkACAAdQBzAGUAIABtAGEAeQAgAHMAdQBiAGoAZQBjAHQAIAB5AG8A
+dQAgAHQAbwAgAGMAcgBpAG0AaQBuAGEAbAAgAHAAcgBvAHMAZQBjAHUAdABpAG8A
+bgAuACAAIABFAHYAaQBkAGUAbgBjAGUAIABvAGYAIAB1AG4AYQB1AHQAaABvAHIA
+aQB6AGUAZAAgAHUAcwBlACAAYwBvAGwAbABlAGMAdABlAGQAIABkAHUAcgBpAG4A
+ZwAgAG0AbwBuAGkAdABvAHIAaQBuAGcAIABtAGEAeQAgAGIAZQAgAHUAcwBlAGQA
+IABmAG8AcgAgAGEAZABtAGkAbgBpAHMAdAByAGEAdABpAHYAZQAsACAAYwByAGkA
+bQBpAG4AYQBsACwAIABvAHIAIABvAHQAaABlAHIAIABhAGQAdgBlAHIAcwBlACAA
+YQBjAHQAaQBvAG4ALgAgACAAVQBzAGUAIABvAGYAIAB0AGgAaQBzACAAcwB5AHMA
+dABlAG0AIABjAG8AbgBzAHQAaQB0AHUAdABlAHMAIABjAG8AbgBzAGUAbgB0ACAA
+dABvACAAbQBvAG4AaQB0AG8AcgBpAG4AZwAgAGYAbwByACAAdABoAGUAcwBlACAA
+cAB1AHIAcABvAHMAZQBzAC4wDQYJKoZIhvcNAQELBQADggEBANoXbn354is3hLS4
+Z7Cll0ofQqyIe2yn4VvUf4AJfUyFskV3REUHXXo1oTEpBjUShNdMlNJsmrtCEgC2
+5w/HINgO2tBsxeTjmHxLB2VCQ0faqNhmrK1AQRTq0qVG5mRfD5nDj/M49ahcR2in
+/chpJe05gf1e7uBkVcggTM1M0XIcI9WHZGbCRrS24O/bHQnKkukwXV2WVlzwWi1v
+xNuj0R2fFcpHOrHd468XOVFFelAQCiH4ExwVswLW85rpf4udWENcP+3IDRt1K9tL
+DLWBfZKY1atu8d9ChdB5vdWg0lZBaCaBkshQmRVrHbLPTV1UHFOxkpxqoTV4noNB
+7EGLSbA=
+-----END CERTIFICATE-----
+ENDOFCSPIREROOTCA
+
+cat << 'ENDOFCSPIREROOTCA' > '/etc/ssl/certs/CSpire-Enterprise-Root-CA-01.pem'
+subject=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Root CA-01
+issuer=/C=US/ST=Mississippi/L=Ridgeland/O=CSpire/CN=CSpire Enterprise Root CA-01
+-----BEGIN CERTIFICATE-----
+MIIMATCCCumgAwIBAgIQMUb49lv+gYxKH6YMXmhNXjANBgkqhkiG9w0BAQsFADBv
+MQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcTCVJp
+ZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMSUwIwYDVQQDExxDU3BpcmUgRW50ZXJw
+cmlzZSBSb290IENBLTAxMB4XDTE2MDkwOTE0MzIyMVoXDTI2MDkwOTE0NDIyMVow
+bzELMAkGA1UEBhMCVVMxFDASBgNVBAgTC01pc3Npc3NpcHBpMRIwEAYDVQQHEwlS
+aWRnZWxhbmQxDzANBgNVBAoTBkNTcGlyZTElMCMGA1UEAxMcQ1NwaXJlIEVudGVy
+cHJpc2UgUm9vdCBDQS0wMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
+AO3jASbX+aNjuGUyUo/chAjNjGNeGaUusS7iiuH7XQ4U6Vpol7WRV7Q8LWz2B54R
+DNtee7uOJw9pnpO2nHjcoF61GAsItWseM2iw3OlKB9q9uJXsmVR5P4Rjk1iHEUbI
+ILuAOFk2KALILYObwhpQG24LvcZXYfwMclOS+Spvku0LPZ7MRdUF9zw7JjZoKziW
+t+hPKHwB4Nxx1DhWlmK7sjZtGwk2zpqlQoU5/1Zef8b8L/m8W4NHhBmzkTgb7WZr
+PosfFin2WfiEXLJ7MdEnOPLloE9L95QoWDHQZJB+jUt9uS1Nknj3NGWsRp5dr7NN
+7I8Btx/eYJujpDHgYV+KPvECAwEAAaOCCJcwggiTMAsGA1UdDwQEAwIBhjASBgNV
+HRMBAf8ECDAGAQH/AgEBMB0GA1UdDgQWBBQH6qOl2iYRyL4RuuSHQjVJEk1c2TAQ
+BgkrBgEEAYI3FQEEAwIBADCCCD0GA1UdIASCCDQwgggwMIIILAYGKQEBAQEBMIII
+IDCCCBwGCCsGAQUFBwICMIIIDh6CCAoAVABoAGkAcwAgAGMAbwBtAHAAdQB0AGUA
+cgAgAHMAeQBzAHQAZQBtACwAIABpAG4AYwBsAHUAZABpAG4AZwAgAGEAbABsACAA
+cgBlAGwAYQB0AGUAZAAgAGUAcQB1AGkAcABtAGUAbgB0ACwAIABuAGUAdAB3AG8A
+cgBrAHMALAAgAGEAbgBkACAAbgBlAHQAdwBvAHIAawAgAGQAZQB2AGkAYwBlAHMA
+IABhAHIAZQAgAHAAcgBvAHYAaQBkAGUAZAAgAG8AbgBsAHkAIABmAG8AcgAgAGEA
+dQB0AGgAbwByAGkAegBlAGQAIABDACAAUwBwAGkAcgBlACAAYgB1AHMAaQBuAGUA
+cwBzACAAdQBzAGUALgAgACAAQwAgAFMAcABpAHIAZQAgAGMAbwBtAHAAdQB0AGUA
+cgAgAHMAeQBzAHQAZQBtAHMAIABtAGEAeQAgAGIAZQAgAG0AbwBuAGkAdABvAHIA
+ZQBkACAAZgBvAHIAIABhAGwAbAAgAGwAYQB3AGYAdQBsACAAcAB1AHIAcABvAHMA
+ZQBzACwAIABpAG4AYwBsAHUAZABpAG4AZwAgAHQAbwAgAGUAbgBzAHUAcgBlACAA
+dABoAGEAdAAgAHQAaABlAGkAcgAgAHUAcwBlACAAaQBzACAAYQB1AHQAaABvAHIA
+aQB6AGUAZAAsACAAZgBvAHIAIABtAGEAbgBhAGcAZQBtAGUAbgB0ACAAbwBmACAA
+dABoAGUAIABzAHkAcwB0AGUAbQAsACAAdABvACAAZgBhAGMAaQBsAGkAdABhAHQA
+ZQAgAHAAcgBvAHQAZQBjAHQAaQBvAG4AIABhAGcAYQBpAG4AcwB0ACAAdQBuAGEA
+dQB0AGgAbwByAGkAegBlAGQAIABhAGMAYwBlAHMAcwAsACAAYQBuAGQAIAB0AG8A
+IAB2AGUAcgBpAGYAeQAgAHMAZQBjAHUAcgBpAHQAeQAgAHAAcgBvAGMAZQBkAHUA
+cgBlAHMALAAgAHMAdQByAHYAaQB2AGEAYgBpAGwAaQB0AHkALAAgAGEAbgBkACAA
+bwBwAGUAcgBhAHQAaQBvAG4AYQBsACAAcwBlAGMAdQByAGkAdAB5AC4AIAAgAE0A
+bwBuAGkAdABvAHIAaQBuAGcAIABpAG4AYwBsAHUAZABlAHMAIABhAGMAdABpAHYA
+ZQAgAGEAbgBkACAAcABhAHMAcwBpAHYAZQAgAGMAaABlAGMAawBzACAAYgB5ACAA
+YQB1AHQAaABvAHIAaQB6AGUAZAAgAEMAIABTAHAAaQByAGUAIABlAG4AdABpAHQA
+aQBlAHMAIAB0AG8AIAB0AGUAcwB0ACwAIABvAHIAIAB2AGUAcgBpAGYAeQAgAHQA
+aABlACAAaABlAGEAbAB0AGgAIABhAG4AZAAgAHMAZQBjAHUAcgBpAHQAeQAgAG8A
+ZgAgAHQAaABpAHMAIABzAHkAcwB0AGUAbQAuACAAIABEAHUAcgBpAG4AZwAgAG0A
+bwBuAGkAdABvAHIAaQBuAGcALAAgAGkAbgBmAG8AcgBtAGEAdABpAG8AbgAgAG0A
+YQB5ACAAYgBlACAAZQB4AGEAbQBpAG4AZQBkACwAIAByAGUAYwBvAHIAZABlAGQA
+LAAgAGMAbwBwAGkAZQBkACAAYQBuAGQAIAB1AHMAZQBkACAAZgBvAHIAIABhAHUA
+dABoAG8AcgBpAHoAZQBkACAAcAB1AHIAcABvAHMAZQBzAC4AIAAgAFUAcwBlACAA
+bwBmACAAdABoAGkAcwAgAEMAIABTAHAAaQByAGUAIABjAG8AbQBwAHUAdABlAHIA
+IABzAHkAcwB0AGUAbQAsACAAYQB1AHQAaABvAHIAaQB6AGUAZAAsACAAbwByACAA
+dQBuAGEAdQB0AGgAbwByAGkAegBlAGQALAAgAGMAbwBuAHMAdABpAHQAdQB0AGUA
+cwAgAGMAbwBuAHMAZQBuAHQAIAB0AG8AIABtAG8AbgBpAHQAbwByAGkAbgBnACAA
+bwBmACAAdABoAGkAcwAgAHMAeQBzAHQAZQBtAC4AIAAgAFUAbgBhAHUAdABoAG8A
+cgBpAHoAZQBkACAAdQBzAGUAIABtAGEAeQAgAHMAdQBiAGoAZQBjAHQAIAB5AG8A
+dQAgAHQAbwAgAGMAcgBpAG0AaQBuAGEAbAAgAHAAcgBvAHMAZQBjAHUAdABpAG8A
+bgAuACAAIABFAHYAaQBkAGUAbgBjAGUAIABvAGYAIAB1AG4AYQB1AHQAaABvAHIA
+aQB6AGUAZAAgAHUAcwBlACAAYwBvAGwAbABlAGMAdABlAGQAIABkAHUAcgBpAG4A
+ZwAgAG0AbwBuAGkAdABvAHIAaQBuAGcAIABtAGEAeQAgAGIAZQAgAHUAcwBlAGQA
+IABmAG8AcgAgAGEAZABtAGkAbgBpAHMAdAByAGEAdABpAHYAZQAsACAAYwByAGkA
+bQBpAG4AYQBsACwAIABvAHIAIABvAHQAaABlAHIAIABhAGQAdgBlAHIAcwBlACAA
+YQBjAHQAaQBvAG4ALgAgACAAVQBzAGUAIABvAGYAIAB0AGgAaQBzACAAcwB5AHMA
+dABlAG0AIABjAG8AbgBzAHQAaQB0AHUAdABlAHMAIABjAG8AbgBzAGUAbgB0ACAA
+dABvACAAbQBvAG4AaQB0AG8AcgBpAG4AZwAgAGYAbwByACAAdABoAGUAcwBlACAA
+cAB1AHIAcABvAHMAZQBzAC4wDQYJKoZIhvcNAQELBQADggEBANoXbn354is3hLS4
+Z7Cll0ofQqyIe2yn4VvUf4AJfUyFskV3REUHXXo1oTEpBjUShNdMlNJsmrtCEgC2
+5w/HINgO2tBsxeTjmHxLB2VCQ0faqNhmrK1AQRTq0qVG5mRfD5nDj/M49ahcR2in
+/chpJe05gf1e7uBkVcggTM1M0XIcI9WHZGbCRrS24O/bHQnKkukwXV2WVlzwWi1v
+xNuj0R2fFcpHOrHd468XOVFFelAQCiH4ExwVswLW85rpf4udWENcP+3IDRt1K9tL
+DLWBfZKY1atu8d9ChdB5vdWg0lZBaCaBkshQmRVrHbLPTV1UHFOxkpxqoTV4noNB
+7EGLSbA=
+-----END CERTIFICATE-----
+ENDOFCSPIREROOTCA
+
+cat << 'ENDOFSATCERT' > '/etc/pki/ca-trust/source/anchors/CSpire-Satellite-Server-SSL-Cert.pem'
+-----BEGIN CERTIFICATE-----
+MIIF0TCCBLmgAwIBAgITewAAAbnJKOWtzGz68wABAAABuTANBgkqhkiG9w0BAQsF
+ADBuMQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcT
+CVJpZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMSQwIgYDVQQDExtDU3BpcmUgRW50
+ZXJwcmlzZSBJbnQgQ0EtMDEwHhcNMTcxMjEzMTcyODU5WhcNMjAxMjEyMTcyODU5
+WjB9MQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcT
+CVJpZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMRcwFQYDVQQLEw5JbmZyYXN0cnVj
+dHVyZTEaMBgGA1UEAxMRamwtc2F0MW0uY29ycC53YW4wggIiMA0GCSqGSIb3DQEB
+AQUAA4ICDwAwggIKAoICAQDNMBkAJ4BJy9x2lUaJXNzs+pJ+Oj8EfWw5lTd+VjpS
+oS14lY5R9MCrCmqYHUpvyLbtXM2D/bdcLMP5kRzxRQdgjnkYOsRf749FIkXWnhNd
+ReUBm1tY/nishugoDFyDFN2ZyTm09bmQXHWbgkMMRaixdfjuwosjwJ4dEnSmF+WP
+dmIqs/EwdP/N2y+kwSA+RZBu5QBTv3vwEkfbT/NFPmunBNdiZ5tEufRaTqyWTZ4Q
+K2dQtx2DKQWtC5TdFgPhF4mEZ98ACBzmE1oUcnO96pdpAf2ODM8B2lDBPwGNb/rP
+QFuoRApToEMkhDlxNNwQSolknfGhWeJwk9M7FWlBCrRpy6DZBfnasIJ2Vi3w5Tpw
+ZhzyJdJUBBovn7KaRPdOEuT4Qep2Y1hpxv6fhWD/GE/ZdFwZY3Kz+xgGTP/2Lwf5
+qq1R2PgV1+9PU6s8NEJupuYX8lG0D41bi4+DBZZVDcLvln26rBFqW4Qqmb2TRGOh
+WAkcUk5trKwTzT3IgckxNxIBoE+PkMOisD73O19f983Q+xwVnkqrCG1x4yc5mB3y
+Q3MN2ZII/5ArZQZ2cq/5Qo+Vq9YdcLJq628hP/OQOLhTvgtToQNHX0WLQrdnJkWs
+4Vi55Zey5Ruqu7uBkqH7moR3c7JR5izJPFuJj++lQ9mAjwTmEzriIMpoMrjkvsyV
+PwIDAQABo4IBVzCCAVMwHQYDVR0OBBYEFEg3tlaEvBiz0lZTya8ZeW3TFov1MB8G
+A1UdIwQYMBaAFGlqpO6URYqKZEoGGIvfB5YAlDUJMEIGA1UdHwQ7MDkwN6A1oDOG
+MWh0dHA6Ly9pbnQwMS1wa2kuY29ycC53YW4vY3JsL2NzLWVudC1pbnQtY2EwMS5j
+cmwwTQYIKwYBBQUHAQEEQTA/MD0GCCsGAQUFBzAChjFodHRwOi8vaW50MDEtcGtp
+LmNvcnAud2FuL2NydC9jcy1lbnQtaW50LWNhMDEuY3J0MA4GA1UdDwEB/wQEAwIF
+oDA8BgkrBgEEAYI3FQcELzAtBiUrBgEEAYI3FQiIqVmB48AFh6mBG4Tc8y+CqrRC
+dYelrzeBzfxoAgFkAgEMMBMGA1UdJQQMMAoGCCsGAQUFBwMBMBsGCSsGAQQBgjcV
+CgQOMAwwCgYIKwYBBQUHAwEwDQYJKoZIhvcNAQELBQADggEBABx36Kqw07tL0kap
+UeEPxq48vgGrNHOANVdmWtqt5OM6ap05grqtU436PjG7P0M+I0tgkTmebelQ6Dzf
+tdjoVTcsASZF0U3seKFnUoXTAY7urYC/KUz8bVzoybBKoLXcroXQyR62m0+zlTzO
+l7F73pkplZS5sXp0vbU3w6w/IGGGmwm7wWa7/b2QwhTnv8lW8HwlbBVbhM/L6JrY
+xQ5GMTx6QMfZ1x9aDgv8BIWIrxT5yv8TLEz3x572n+YQkoXCgvznD9SPtDc10N8y
+Q3ltLVes6ZQVSlfyYjIHM0bJ8eKLFEDVQe3QWeddr+iaH0rxa0k1XZYXC6FvrydA
++TQ0bCY=
+-----END CERTIFICATE-----
+ENDOFSATCERT
+
+cat << 'ENDOFSATCERT' > '/etc/ssl/certs/CSpire-Satellite-Server-SSL-Cert.pem'
+-----BEGIN CERTIFICATE-----
+MIIF0TCCBLmgAwIBAgITewAAAbnJKOWtzGz68wABAAABuTANBgkqhkiG9w0BAQsF
+ADBuMQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcT
+CVJpZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMSQwIgYDVQQDExtDU3BpcmUgRW50
+ZXJwcmlzZSBJbnQgQ0EtMDEwHhcNMTcxMjEzMTcyODU5WhcNMjAxMjEyMTcyODU5
+WjB9MQswCQYDVQQGEwJVUzEUMBIGA1UECBMLTWlzc2lzc2lwcGkxEjAQBgNVBAcT
+CVJpZGdlbGFuZDEPMA0GA1UEChMGQ1NwaXJlMRcwFQYDVQQLEw5JbmZyYXN0cnVj
+dHVyZTEaMBgGA1UEAxMRamwtc2F0MW0uY29ycC53YW4wggIiMA0GCSqGSIb3DQEB
+AQUAA4ICDwAwggIKAoICAQDNMBkAJ4BJy9x2lUaJXNzs+pJ+Oj8EfWw5lTd+VjpS
+oS14lY5R9MCrCmqYHUpvyLbtXM2D/bdcLMP5kRzxRQdgjnkYOsRf749FIkXWnhNd
+ReUBm1tY/nishugoDFyDFN2ZyTm09bmQXHWbgkMMRaixdfjuwosjwJ4dEnSmF+WP
+dmIqs/EwdP/N2y+kwSA+RZBu5QBTv3vwEkfbT/NFPmunBNdiZ5tEufRaTqyWTZ4Q
+K2dQtx2DKQWtC5TdFgPhF4mEZ98ACBzmE1oUcnO96pdpAf2ODM8B2lDBPwGNb/rP
+QFuoRApToEMkhDlxNNwQSolknfGhWeJwk9M7FWlBCrRpy6DZBfnasIJ2Vi3w5Tpw
+ZhzyJdJUBBovn7KaRPdOEuT4Qep2Y1hpxv6fhWD/GE/ZdFwZY3Kz+xgGTP/2Lwf5
+qq1R2PgV1+9PU6s8NEJupuYX8lG0D41bi4+DBZZVDcLvln26rBFqW4Qqmb2TRGOh
+WAkcUk5trKwTzT3IgckxNxIBoE+PkMOisD73O19f983Q+xwVnkqrCG1x4yc5mB3y
+Q3MN2ZII/5ArZQZ2cq/5Qo+Vq9YdcLJq628hP/OQOLhTvgtToQNHX0WLQrdnJkWs
+4Vi55Zey5Ruqu7uBkqH7moR3c7JR5izJPFuJj++lQ9mAjwTmEzriIMpoMrjkvsyV
+PwIDAQABo4IBVzCCAVMwHQYDVR0OBBYEFEg3tlaEvBiz0lZTya8ZeW3TFov1MB8G
+A1UdIwQYMBaAFGlqpO6URYqKZEoGGIvfB5YAlDUJMEIGA1UdHwQ7MDkwN6A1oDOG
+MWh0dHA6Ly9pbnQwMS1wa2kuY29ycC53YW4vY3JsL2NzLWVudC1pbnQtY2EwMS5j
+cmwwTQYIKwYBBQUHAQEEQTA/MD0GCCsGAQUFBzAChjFodHRwOi8vaW50MDEtcGtp
+LmNvcnAud2FuL2NydC9jcy1lbnQtaW50LWNhMDEuY3J0MA4GA1UdDwEB/wQEAwIF
+oDA8BgkrBgEEAYI3FQcELzAtBiUrBgEEAYI3FQiIqVmB48AFh6mBG4Tc8y+CqrRC
+dYelrzeBzfxoAgFkAgEMMBMGA1UdJQQMMAoGCCsGAQUFBwMBMBsGCSsGAQQBgjcV
+CgQOMAwwCgYIKwYBBQUHAwEwDQYJKoZIhvcNAQELBQADggEBABx36Kqw07tL0kap
+UeEPxq48vgGrNHOANVdmWtqt5OM6ap05grqtU436PjG7P0M+I0tgkTmebelQ6Dzf
+tdjoVTcsASZF0U3seKFnUoXTAY7urYC/KUz8bVzoybBKoLXcroXQyR62m0+zlTzO
+l7F73pkplZS5sXp0vbU3w6w/IGGGmwm7wWa7/b2QwhTnv8lW8HwlbBVbhM/L6JrY
+xQ5GMTx6QMfZ1x9aDgv8BIWIrxT5yv8TLEz3x572n+YQkoXCgvznD9SPtDc10N8y
+Q3ltLVes6ZQVSlfyYjIHM0bJ8eKLFEDVQe3QWeddr+iaH0rxa0k1XZYXC6FvrydA
++TQ0bCY=
+-----END CERTIFICATE-----
+ENDOFSATCERT
+
+cat << 'ENDOFNSSWITCH' > '/etc/nsswitch.conf'
+# /etc/nsswitch.conf
+
+passwd:		compat  sss
+shadow:		compat  sss
+group:		compat  sss
+netgroup:       files   sss
+networks:       files   dns
+sudoers:        compat
+services:       files
+protocols:      files
+rpc:            files
+ethers:         files
+netmasks:       files
+publickey:      files
+bootparams:     files
+automount:      files
+aliases:        files
+hosts:          files   dns
+ENDOFNSSWITCH
+
+cat << 'ENDOFNTPCONF' > '/etc/ntp.conf'
+# NTP Configuration File  - /etc/ntp.conf
+
+driftfile /var/lib/ntp/drift
+logfile /var/log/ntp
+logconfig all
+includefile /etc/ntp/crypto/pw
+keys /etc/ntp/keys
+trustedkey 1
+requestkey 1
+server 10.16.192.34  iburst
+server 10.16.192.35  iburst
+controlkey 1
+restrict default kod limited nomodify notrap nopeer noquery
+restrict -6 default kod limited nomodify notrap nopeer noquery
+restrict 127.0.0.1
+restrict -6 ::1
+restrict 10.16.192.34
+restrict 10.16.192.35
+ENDOFNTPCONF
+
+cat << 'ENDOFCHRONYCONF' > '/etc/chrony.conf'
+# /etc/chrony.conf
+
+server 10.16.229.90 iburst
+server 10.180.4.90 iburst
+driftfile /var/lib/chrony/drift
+makestep 1.0 3
+rtcsync
+logdir /var/log/chrony
+#hwtimestamp *
+#minsources 2
+#allow 192.168.0.0/16
+#local stratum 10
+#keyfile /etc/chrony.keys
+#log measurements statistics tracking
+
+ENDOFCHRONYCONF
+
+cat << 'ENDOFAUTOMASTER' > '/etc/auto.master'
+/-              auto.direct       -rw,hard,suid,intr,noatime,rsize=1048576,wsize=1048576,proto=tcp,vers=3,nodev,nonstrict
+/nfs/homes      /etc/auto.home
+ENDOFAUTOMASTER
+
+cat << 'ENDOFSMB' > '/etc/samba/smb.conf'
+[global]
+    security = ads
+    realm = CORP.WAN
+    workgroup = CORP
+    log file = /var/log/samba/%m.log
+    kerberos method = secrets and keytab
+    client signing = yes
+    client use spnego = yes
+ENDOFSMB
+
+cat << 'ENDOFKRBCONF' > '/etc/krb5.conf'
+# /etc/krb5.conf
+# This file holds the settings for the kerberos client.
+# For help with editing this file run "man 5 krb5.conf"
+
+includedir /var/lib/sss/pubconf/krb5.include.d/
+includedir /etc/krb5.conf.d/
+
+[logging]
+ default = FILE:/var/log/krb5libs.log
+ kdc = FILE:/var/log/krb5kdc.log
+ admin_server = FILE:/var/log/kadmind.log
+
+[libdefaults]
+ dns_lookup_realm = true
+ ticket_lifetime = 8h
+ renew_lifetime = 7d
+ forwardable = true
+ rdns = true
+ pkinit_anchors = /etc/pki/tls/certs/ca-bundle.crt
+ default_realm = CORP.WAN
+ default_ccache_name = KEYRING:persistent:%{uid}
+ dns_lookup_kdc = true
+
+[realms]
+ CORP.WAN = {
+  kdc = sw-windc1p.corp.wan
+  admin_server = sw-windc1p.corp.wan
+  kdc = 10.180.4.90
+  kdc = 10.16.129.91
+  kdc = 10.16.229.90
+  kdc = 10.16.129.90
+ }
+
+[domain_realm]
+ .corp.wan = CORP.WAN
+ corp.wan = CORP.WAN
+ENDOFKRBCONF
+
+cat << 'ENDOFSSHCONFIG' > '/etc/ssh/ssh_config'
+# If you need assistance in configuring this file, run:  'man 5 ssh_config'
+#    This will provide a description for all possible options.
+#    It will also show the default values that are set for each option.
+
+Host *
+Port 22
+AddressFamily inet
+BatchMode no
+ChallengeResponseAuthentication yes
+CheckHostIP yes
+Cipher 3des
+Ciphers aes128-ctr,aes192-ctr,aes256-ctr,arcfour256,arcfour128,aes128-cbc,3des-cbc
+ConnectTimeout 5
+EscapeChar ~
+ForwardAgent no
+ForwardX11 no
+ForwardX11Trusted yes
+GSSAPIAuthentication yes
+GSSAPIDelegateCredentials no
+GSSAPIKeyExchange no
+GSSAPIRenewalForcesRekey no
+GSSAPITrustDNS no
+HostbasedAuthentication no
+IdentityFile ~/.ssh/id_ed25519
+IdentityFile ~/.ssh/id_ecdsa
+IdentityFile ~/.ssh/id_rsa
+MACs hmac-md5,hmac-sha1,umac-64@openssh.com,hmac-ripemd160
+PasswordAuthentication yes
+PermitLocalCommand no
+Protocol 2
+RekeyLimit 1G 1h
+SendEnv LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES
+SendEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
+SendEnv LC_IDENTIFICATION LC_ALL LANGUAGE
+SendEnv XMODIFIERS
+StrictHostKeyChecking no
+Tunnel no
+TunnelDevice any:any
+VisualHostKey no
+ENDOFSSHCONFIG
+
+cat << 'ENDOFSSHDBANNER' > '/etc/ssh/sshd_banner'
+ -----------------------------------------------------------------------------------------------------
+| This computer system, including all related equipment, networks, and network devices are            |
+| provided only for authorized C Spire business use.  C Spire computer systems                        |
+| may be monitored for all lawful purposes, including to ensure that their use is authorized,         |
+| for management of the system, to facilitate protection against unauthorized access, and to          |
+| verify security procedures, survivability, and operational security.  Monitoring includes           |
+| active and passive checks by authorized C Spire entities to test, or verify the health              |
+| and security of this system.  During monitoring, information may be examined, recorded, copied      |
+| and used for authorized purposes.                                                                   |
+|-----------------------------------------------------------------------------------------------------|
+| All information, including personal information, placed, or sent over this system may be monitored. |
+|-----------------------------------------------------------------------------------------------------|
+| Use of this C Spire computer system, authorized, or unauthorized, constitutes consent to            |
+| monitoring of this system.  Unauthorized use may subject you to criminal prosecution.  Evidence     |
+| of unauthorized use collected during monitoring may be used for administrative, criminal, or        |
+| other adverse action.  Use of this system constitutes consent to monitoring for these purposes.     |
+ -----------------------------------------------------------------------------------------------------
+ENDOFSSHDBANNER
+
+cat << 'ENDOFCSPIREREPO' > '/etc/yum.repos.d/cspire-content-for-redhat-7.7.repo'
+[cspire-content-for-redhat-7.7]
+name=cspire-content-for-redhat-7.7
+type=yum
+baseurl=https://sl-udeploy1t.corp.wan/pub/repos/cspire-content-for-redhat-7.7/
+gpgkey=https://sl-udeploy1t.corp.wan/pub/repos/cspire-content-for-redhat-7.7/repodata/repomd.xml.key
+gpgcheck=1
+enabled=1
+keeppackages=0
+ENDOFCSPIREREPO
+
+cat << 'ENDOFAUTHCONFIG' > '/etc/sysconfig/authconfig'
+CACHECREDENTIALS=no
+FORCELEGACY=no
+FORCESMARTCARD=no
+IPADOMAINJOINED=no
+IPAV2NONTP=no
+PASSWDALGORITHM=sha512
+USEDB=no
+USEECRYPTFS=no
+USEFPRINTD=no
+USEHESIOD=no
+USEIPAV2=no
+USEKERBEROS=no
+USELDAP=no
+USELDAPAUTH=no
+USELOCAUTHORIZE=yes
+USEMKHOMEDIR=yes
+USENIS=no
+USEPAMACCESS=no
+USEPASSWDQC=no
+USEPWQUALITY=yes
+USESHADOW=yes
+USESMARTCARD=no
+USESSSD=yes
+USESSSDAUTH=yes
+USESYSNETAUTH=no
+USEWINBIND=no
+USEWINBINDAUTH=no
+WINBINDKRB5=no
+ENDOFAUTHCONFIG
+
+cat << 'ENDOFREJOINCORP' > '/root/bin/rejoin-corp'
+#!/bin/bash
+
+if [ -z "${TERM}" ]; then
+  TERM=xterm
+  export TERM
+fi
+
+function DISPLAY_USAGE() {
+  printf "\\033[38;5;190m======================================================================================\n"
+  printf "\\033[38;5;190m   Usage:\n"
+  printf "\\033[38;5;190m          $0 without options will try to rejoin a system to the domain\n"
+  echo ''
+  printf "\\033[38;5;190m          $0 plus any option or any number of options displays this message\n"
+  printf "\\033[38;5;190m          and the instructions to rejoin a system to the domain manually\n"
+  printf "\\033[38;5;190m          which can be seen below.\n"
+  printf "\\033[38;5;190m======================================================================================\n"
+  echo ''
+  echo ''
+  echo ''
+  printf "\\033[38;5;46m---------------------------------------------------------------------------\n"
+  printf "\\033[38;5;46m    Instructions to rejoin a system to the corp.wan domain manually\n"
+  printf "\\033[38;5;46m---------------------------------------------------------------------------\n"
+  echo ''
+  if [ -x "/usr/bin/yum" ];then
+    printf "\\033[38;5;190m$(hostname)\\033[0m is a \\033[38;5;160mRed Hat\\033[0m system.\n"
+    echo ''
+    printf "\\033[0mFor \\033[38;5;160mRed Hat\\033[0m systems, you should try performing the following steps:\n"
+    echo ''
+    printf "   1.  Get a Kerberos ticket for the svc-udeploy account by running:\n"
+    printf "\\033[38;5;51m          echo -n 'L1nW.Nja1cdi.' | kinit svc-unixdeploy\n"
+    echo ''
+    printf "\\033[0m          You can test to see if the ticket was retrieved successfully by running:\n"
+    printf "\\033[38;5;51m         /usr/bin/klist\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   2.  Use adcli to update the account information for this host in Active Directory.\n"
+    printf "       The following command should work as long as the authentication packages are\n"
+    printf "       configured correctly and running the hostname command returns the correct name.\n"
+    echo ''
+    printf "\\033[38;5;51m          adcli update --domain='corp.wan' --host-fqdn="$(hostname -f)" --host-keytab='/etc/krb5.keytab' --computer-name="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')" --os-name='RedHat-Enterprise-Linux-Server' --os-version='7' --os-service-pack='7' --user-principal="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" --login-ccache='KEYRING:persistent:0'\n"
+    echo ''
+    printf "\\033[38;5;160m        Note: \\033[38;5;166mContinue the rest of the steps even if the adcli command fails.\n"
+    printf "\\033[38;5;166m              At this point it is not going to hurt anything.\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   4.   Flush the sssd cache by running:\n"
+    printf "\\033[38;5;51m           sss_cache -E\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   5.   If you were successful in rejoining the domain, get a Kerberos ticket for this host.\n"
+    printf "        The following command should work if the authentication packages are configured correctly\n"
+    printf "        and running the hostname command returns the correct name.\n"
+    echo ''
+    printf "\\033[38;5;51m           kinit -R "$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" -k -t '/etc/krb5.keytab'\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   6.   Restart the sssd service by running:\n"
+    printf "\\033[38;5;51m           systemctl restart sssd\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   7.   Test to see if authentication is working properly by using sudo to run a command as yourself.\n"
+    printf "        If your password is accepted then you are good to go.  If is still is not working then you\n"
+    printf "        are on you own because I have done all I can do.\n"
+    echo ''
+    echo ''
+    echo ''
+    printf "\\033[38;5;46mSingle Command String for the Bold (or the impatient):\\033[0m\n"
+    printf "\\033[38;5;46m------------------------------------------------------\\033[0m\n"
+    printf "\\033[38;5;51mecho -n 'L1nW.Nja1cdi.' | kinit svc-unixdeploy; adcli update --domain='corp.wan' --host-fqdn="$(hostname -f)" --host-keytab='/etc/krb5.keytab' --computer-name="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')" --os-name='RedHat-Enterprise-Linux-Server' --os-version='7' --os-service-pack='7' --user-principal="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" --login-ccache='KEYRING:persistent:0'; sleep 5; sss_cache -E; kinit -R "$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" -k -t '/etc/krb5.keytab'; systemctl restart sssd\\033[0m\n\n"
+  elif [ -x "/usr/bin/zypper" ]; then
+    printf "\\033[38;5;46mThis script is not meant to run on SuSE servers.  Please locate the older version of rejoin-corp\\033[0m\n"
+    echo ''
+    exit 1
+  fi
+}
+
+function GIVE_HELP() {
+  echo ''
+  printf "\\033[0mThe process of rejoining \\033[38;5;190m$(hostname)\\033[0m to the corp.wan domain was not successful.\n"
+  printf "The process failed due to the following reason:\n"
+  echo ''
+  DISPLAY_ERROR
+  printf "\\033[0mYou will need rejoin \\033[38;5;190m$(hostname)\\033[0m to the corp.wan domain manually.\n"
+  printf "Hopefully the following instructions will provide adequate assistance.\n"
+  echo ''
+
+  if [ -x "/usr/bin/yum" ];then
+    printf "\\033[38;5;190m$(hostname)\\033[0m is a \\033[38;5;160mRed Hat\\033[0m system.\n"
+    echo ''
+    printf "\\033[0mFor \\033[38;5;160mRed Hat\\033[0m systems, you should try performing the following steps:\n"
+    echo ''
+    printf "   1.  Get a Kerberos ticket for the svc-udeploy account by running:\n"
+    printf "\\033[38;5;51m          echo -n 'L1nW.Nja1cdi.' | kinit svc-unixdeploy\n"
+    echo ''
+    printf "\\033[0m          You can test to see if the ticket was retrieved successfully by running:\n"
+    printf "\\033[38;5;51m         /usr/bin/klist\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   2.  Use adcli to update the account information for this host in Active Directory.\n"
+    printf "       The following command should work as long as the authentication packages are\n"
+    printf "       configured correctly and running the hostname command returns the correct name.\n"
+    echo ''
+    printf "\\033[38;5;51m          adcli update --domain='corp.wan' --host-fqdn="$(hostname -f)" --host-keytab='/etc/krb5.keytab' --computer-name="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')" --os-name='RedHat-Enterprise-Linux-Server' --os-version='7' --os-service-pack='7' --user-principal="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" --login-ccache='KEYRING:persistent:0'\n"
+    echo ''
+    printf "\\033[38;5;160m        Note: \\033[38;5;166mContinue the rest of the steps even if the adcli command fails.\n"
+    printf "\\033[38;5;166m              At this point it is not going to hurt anything.\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   4.   Flush the sssd cache by running:\n"
+    printf "\\033[38;5;51m           sss_cache -E\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   5.   If you were successful in rejoining the domain, get a Kerberos ticket for this host.\n"
+    printf "        The following command should work if the authentication packages are configured correctly\n"
+    printf "        and running the hostname command returns the correct name.\n"
+    echo ''
+    printf "\\033[38;5;51m           kinit -R "$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" -k -t '/etc/krb5.keytab'\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   6.   Restart the sssd service by running:\n"
+    printf "\\033[38;5;51m           systemctl restart sssd\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   7.   Test to see if authentication is working properly by using sudo to run a command as yourself.\n"
+    printf "        If your password is accepted then you are good to go.  If is still is not working then you\n"
+    printf "        are on you own because I have done all I can do.\n"
+    echo ''
+    echo ''
+    echo ''
+    printf "\\033[38;5;46mSingle Command String for the Bold (or the impatient):\\033[0m\n"
+    printf "\\033[38;5;46m------------------------------------------------------\\033[0m\n"
+    printf "\\033[38;5;51mecho -n 'L1nW.Nja1cdi.' | kinit svc-unixdeploy; adcli update --domain='corp.wan' --host-fqdn="$(hostname -f)" --host-keytab='/etc/krb5.keytab' --computer-name="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')" --os-name='RedHat-Enterprise-Linux-Server' --os-version='7' --os-service-pack='7' --user-principal="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" --login-ccache='KEYRING:persistent:0'; sleep 5; sss_cache -E; kinit -R "$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" -k -t '/etc/krb5.keytab'; systemctl restart sssd\\033[0m\n\n"
+  elif [ -x "/usr/bin/zypper" ]; then
+    printf "\\033[38;5;46mThis script is not meant to run on SuSE servers.  Please locate the older version of rejoin-corp\\033[0m\n"
+    echo ''
+    exit 1
+  fi
+}
+
+if [ $# -gt 0 ]; then
+  DISPLAY_USAGE
+  exit 0
+fi
+
+printf "\\033[38;5;46mBeginning process of rejoining \\033[38;5;190m$(hostname)\\033[38;5;46m to the corp.wan domain...\\033[0m\n"
+echo ''
+if [ ! -x "/usr/bin/klist" ]; then
+  if [ -x "/usr/bin/yum" ]; then
+    printf "\\033[38;5;46mAttempting to install krb5-workstation because it provides the kinit and klist.\\033[0m\n"
+    printf "\\033[38;5;46mThese applications are required to continue.\\033[0m\n"
+    echo ''
+    "/usr/bin/yum" -y install krb5-workstation.x86_64
+    RET="$?"
+
+    if [ "${RET}" -eq '0' ]; then
+      printf "\\033[38;5;46mkrb5-workstation was installed successfully.\\033[0m\n"
+      echo ''
+    else
+      function DISPLAY_ERROR() {
+        printf "\\033[38;5;160mERROR:  The installation of krb5-workstation was not successful.\\033[0m\n"
+        printf "\\033[38;5;160mYou may wish to verify that this system is registered to the satellite server correctly.\\033[0m\n"
+        echo ''
+        printf "\\033[38;5;160mCannot continue without klist and kinit.\\033[0m\n"
+      }
+      GIVE_HELP
+      exit 1
+    fi
+  elif [ -x "/usr/bin/zypper" ]; then
+    printf "\\033[38;5;46mThis script is not meant to run on SuSE servers.  Please locate the older version of rejoin-corp\\033[0m\n"
+    echo ''
+    exit 1
+  fi
+fi
+
+printf "\\033[38;5;46mUsing svc-unixdeploy to get a Kerberos ticket from one of the domain controllers...\\033[0m\n"
+echo ''
+echo -n 'L1nW.Nja1cdi.' | kinit svc-unixdeploy
+RET="$?"
+if [ "${RET}" -eq 0 ]; then
+  printf "\\033[38;5;46mThe attempt to get a Kerberos ticket was successful.\\033[0m\n"
+  printf "\\033[38;5;46mThis is the ticket that was retrieved:\\033[0m\n"
+  klist
+else
+  function DISPLAY_ERROR() {
+    printf "\\033[38;5;160mERROR:  The attempt to get a kerberos ticket was not successful.\\033[0m\n"
+    printf "\\033[38;5;160m        Cannot continue without a ticket to use for authenticating\\033[0m\n"
+    printf "\\033[38;5;160m        against Active Directory.\\033[0m\n"
+    echo ''
+  }
+  GIVE_HELP
+  exit 1
+fi
+
+if [ $(rpm -qa adcli | wc -l) -eq '0' ]; then
+  printf "\\033[38;5;46mAttempting to install adcli because it is required...\\033[0m\n"
+  echo ''
+  if [ -x "/usr/bin/yum" ]; then
+    "/usr/bin/yum" -y install adcli
+    RET="$?"
+
+    if [ "${RET}" -eq '0' ]; then
+      printf "\\033[38;5;46mThe adcli package was installed successfully.\\033[0m\n"
+      echo ''
+    else
+      function DISPLAY_ERROR() {
+        printf "\\033[38;5;160mERROR:  The adcli package is not installed and the attempt to install package failed.\\033[0m\n"
+        printf "\\033[38;5;160mYou may wish to verify that this system is registered to the satellite server correctly.\\033[0m\n"
+        echo ''
+        printf "\\033[38;5;160mCannot continue without adcli.\\033[0m\n"
+        echo ''
+      }
+      GIVE_HELP
+      exit 1
+    fi
+  elif [ -x "/usr/bin/zypper" ]; then
+    printf "\\033[38;5;46mThis script is not meant to run on SuSE servers.  Please locate the older version of rejoin-corp\\033[0m\n"
+    echo ''
+    exit 1
+  fi
+fi
+
+printf "\\033[38;5;46mUsing adcli to update the system information for \\033[38;5;190m$(hostname)\\033[38;5;46m in Active Directory...\\033[0m\n"
+
+if [ -x "/usr/bin/yum" ]; then
+  adcli update --domain='corp.wan' --host-fqdn="$(hostname -f)" --host-keytab='/etc/krb5.keytab' --computer-name="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')" --os-name='RedHat-Enterprise-Linux-Server' --os-version='7' --os-service-pack='7' --user-principal="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" --login-ccache='KEYRING:persistent:0'
+elif [ -x "/usr/bin/zypper" ]; then
+    printf "\\033[38;5;46mThis script is not meant to run on SuSE servers.  Please locate the older version of rejoin-corp\\033[0m\n"
+    echo ''
+    exit 1
+fi
+
+echo ''
+printf "\\033[38;5;46mPausing for 10 seconds just to make sure we are not rushing the domain controllers...\\033[0m\n"
+sleep 10
+echo ''
+printf "\\033[38;5;46mAttempting to rejoin \\033[38;5;190m$(hostname)\\033[38;5;46m to the corp.wan domain using adcli join...\\033[0m\n"
+adcli join --verbose --domain='corp.wan' --domain-realm='CORP.WAN' --domain-ou='OU=Unix,OU=Servers,DC=corp,DC=wan' --host-fqdn="$(hostname -f)" --host-keytab='/etc/krb5.keytab' --computer-name="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')" --login-ccache='KEYRING:persistent:0' --login-user='svc-unixdeploy' --os-name='RedHat-Enterprise-Linux-Server' --os-service-pack='7' --os-version='7' --user-principal="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$"
+RET="$?"
+echo ''
+
+if [ "${RET}" -eq 0 ]; then
+  printf "\\033[38;5;46mThe attempt to rejoin the corp.wan domain was successful.\\033[0m\n"
+  echo ''
+else
+  function DISPLAY_ERROR() {
+    printf "\\033[38;5;160mERROR:  Rejoining \\033[38;5;190m$(hostname)\\033[38;5;160m the corp.wan domain using adcli join was not successful.\\033[0m\n"
+    echo ''
+    }
+  GIVE_HELP
+  exit 1
+fi
+
+if [ ! -x "/usr/sbin/sss_cache" ]; then
+  if [ -x "/usr/bin/yum" ]; then
+    printf "\\033[38;5;46mAttempting to install sssd-common because it provides /usr/bin/sss_cache.\\033[0m\n"
+    printf "\\033[38;5;46mThis package is required for clearing the sssd cache.\\033[0m\n"
+    echo ''
+    '/usr/bin/yum' -y install sssd-common.x86_64
+    if [ $(rpm -qa sssd-common | wc -l) -gt 0 ]; then
+      printf "\\033[38;5;46mThe installation of sssd-common was successful.\\033[0m\n"
+      printf "\\033[38;5;46mClearing the sssd cache...\\033[0m\n"
+      '/usr/sbin/sss_cache' -E
+      echo ''
+    else
+      printf "\\033[38;5;160mThe attempt to install sssd-common has failed.\\033[0m\n"
+      printf "\\033[38;5;160mYou may wish to verify that this system is registered to the satellite server correctly.\\033[0m\n"
+      echo ''
+      printf "\\033[38;5;46mContinuing anyway because this step is not vital...\\033[0m\n"
+    fi
+  elif [ -x "/usr/bin/zypper" ]; then
+    printf "\\033[38;5;46mThis script is not meant to run on SuSE servers.  Please locate the older version of rejoin-corp\\033[0m\n"
+    echo ''
+    exit 1
+  fi
+fi
+
+echo ''
+printf "\\033[38;5;46mGetting a Kerberos ticket for \\033[38;5;190m$(hostname)\\033[38;5;46m...\\033[0m\n"
+'/usr/bin/kinit' -R "$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" -k -t '/etc/krb5.keytab'
+RET="$?"
+
+if [ "${RET}" -eq  '0' ]; then
+  printf "\\033[38;5;46mSuccessfully acquired a Kerberos ticket for \\033[38;5;190m$(hostname)\\033[0m\n"
+  printf "\\033[38;5;46mThis is the ticket that was acquired:\\033[0m\n"
+  echo ''
+  '/usr/bin/klist'
+else
+  printf "\\033[38;5;160mWas unable to acquire a Kerberos ticket for \\033[38;5;190m$(hostname)\\033[0m\n"
+  echo ''
+  printf "\\033[38;5;46mContinuing anyway because this step is not vital.\\033[0m\n"
+  echo ''
+fi
+
+printf "\\033[38;5;46mAttempting a restart of the sssd service...\\033[0m\n"
+echo ''
+'/usr/bin/systemctl' restart sssd
+RET="$?"
+
+if [ "${RET}" -eq '0' ]; then
+  printf "\\033[38;5;46mThe sssd service was restarted successfully.\\033[0m\n"
+  echo ''
+  printf "\\033[38;5;46mThis is the status of the sssd service:\\033[0m\n"
+  printf "\\033[38;5;46m---------------------------------------\\033[0m\n"
+  echo ''
+  '/usr/bin/systemctl' status sssd.service
+  echo ''
+else
+  function DISPLAY_ERROR() {
+    echo ''
+    printf "\\033[38;5;160mERROR:  The resart of the sssd service has failed.\\033[0m\n"
+    echo ''
+    printf "\\033[38;5;160mThis is the status of the sssd service:\\033[0m\n"
+    printf "\\033[38;5;160m---------------------------------------\\033[0m\n"
+    echo ''
+    '/usr/bin/systemctl' status sssd.service
+    echo ''
+    echo ''
+    printf "\\033[38;5;160mThese are the latest journal entries associated with the sssd.service:\\033[0m\n"
+    printf "\\033[38;5;160m----------------------------------------------------------------------\\033[0m\n"
+    echo ''
+    echo "$('/usr/bin/journalctl' -u sssd)" | tail -n 100
+    echo ''
+  }
+  GIVE_HELP
+  exit 1
+fi
+
+printf "\\033[38;5;46mThe process of rejoining \\033[38;5;190m$(hostname)\\033[38;5;46m to the corp.wan domain\\033[0m\n"
+printf "\\033[38;5;46mappears to have been successful.\\033[0m\n"
+echo ''
+printf "\\033[38;5;46mPlease verify that authentication against AD is working correctly.\\033[0m\n"
+echo ''
+printf "\\033[38;5;46mThe list below contains some examples of ways that you can do the\\033[0m\n"
+printf "\\033[38;5;46mauthentication verification.\\033[0m\n"
+echo ''
+printf "\\033[38;5;46mTry logging into \\033[38;5;190m$(hostname)\\033[38;5;46m as yourself\\033[0m\n"
+printf "\\033[38;5;46mUse sudo to run a command as yourself to see if your password will be accepted.\\033[0m\n"
+echo ''
+printf "\\033[38;5;166mCommands you can run:\\033[0m\n"
+printf "\\033[38;5;51mgetent passwd <username>\\033[0m\n"
+printf "\\033[38;5;51mgetent group <groupname>\\033[0m\n"
+printf "\\033[38;5;51mid <username>\\033[0m\n"
+printf "\\033[38;5;51msudo -U <username> -l\\033[0m\n"
+echo ''
+echo ''
+exit 0
+
+ENDOFREJOINCORP
+
+cat << 'ENDOFSSSDCONF' > '/etc/sssd/sssd.conf'
+[sssd]
+config_file_version = 2
+services = nss,pam
+domains = corp.wan
+
+[nss]
+
+[pam]
+offline_credentials_expiration = 7
+
+[domain/corp.wan]
+access_provider = ad
+ad_backup_server = _srv_
+ad_domain = corp.wan
+ad_enable_dns_sites = true
+ad_enable_gc = true
+ad_gpo_access_control = disabled
+ad_maximum_machine_account_password_age = 30
+ad_server = _srv_
+auth_provider = ad
+cache_credentials = true
+case_sensitive = false
+chpass_provider = ad
+default_shell = /bin/bash
+dns_discovery_domain = corp.wan
+dyndns_refresh_interval = 129600
+dyndns_ttl = 3600
+dyndns_update = true
+dyndns_update_ptr = True
+enumerate = false
+id_provider = ad
+krb5_ccname_template = KEYRING:persistent:%U
+krb5_lifetime = 7h
+krb5_renewable_lifetime = 5d
+krb5_renew_interval = 2h
+ldap_group_member = member
+ldap_group_name = cn
+ldap_group_nesting_level = 10
+ldap_group_object_class = group
+ldap_group_objectsid = objectSid
+ldap_group_search_base = dc=corp,dc=wan
+ldap_groups_use_matching_rule_in_chain = true
+ldap_id_mapping = true
+ldap_idmap_default_domain = corp.wan
+ldap_idmap_default_domain_sid = S-1-5-21-1760937858-1793118317-3973843321
+ldap_initgroups_use_matching_rule_in_chain = true
+ldap_schema = ad
+ldap_search_base = DC=corp,DC=wan
+ldap_use_tokengroups = true
+ldap_user_ad_account_expires = accountExpires
+ldap_user_ad_user_account_control = userAccountControl
+ldap_user_fullname = displayName
+ldap_user_home_directory = homeDirectory
+ldap_user_member_of = memberOf
+ldap_user_name = sAMAccountName
+ldap_user_object_class = user
+ldap_user_objectsid = objectSid
+ldap_user_search_base = dc=corp,dc=wan
+override_homedir = /nfs/homes/%u
+ad_hostname = SL-WEBSVC2T.corp.wan
+ad_access_filter = DOM:corp.wan:(&(objectClass=user)(|(memberOf:1.2.840.113556.1.4.1941:=CN=Linux-Admins-Nonprod,OU=Groups,DC=corp,DC=wan)(memberOf:1.2.840.113556.1.4.1941:=CN=Linux-WEBAPPS-Nonprod,OU=Groups,DC=corp,DC=wan)(memberOf:1.2.840.113556.1.4.1941:=CN=Linux-Web-Contractors-Nonprod,OU=Groups,DC=corp,DC=wan)(sAMAccountName=svc-nexposeunix)))
+ldap_sasl_authid = SL-WEBSVC2T$@CORP.WAN
+ENDOFSSSDCONF
+
+cat << 'ENDOFSSHDCONF' > '/etc/ssh/sshd_config'
+# If you need assistance in configuring this file, run:  'man 5 sshd_config'
+#    This will provide a description for all possible options.
+#    It will also show the default values that are set for each option.
+
+Port 22
+AddressFamily inet
+AllowAgentForwarding yes
+AllowTcpForwarding yes
+AuthorizedKeysFile .ssh/authorized_keys
+Banner /etc/ssh/sshd_banner
+ChallengeResponseAuthentication yes
+ChrootDirectory none
+ClientAliveCountMax 3
+ClientAliveInterval 0
+Compression delayed
+GatewayPorts no
+GSSAPIAuthentication yes
+GSSAPICleanupCredentials yes
+GSSAPIKeyExchange yes
+GSSAPIStrictAcceptorCheck yes
+HostbasedAuthentication no
+HostKey /etc/ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_rsa_key
+IgnoreRhosts yes
+IgnoreUserKnownHosts no
+KerberosAuthentication yes
+KerberosOrLocalPasswd yes
+KerberosTicketCleanup yes
+ListenAddress 10.180.112.88
+LoginGraceTime 2m
+LogLevel INFO
+MaxAuthTries 6
+MaxSessions 20
+MaxStartups 10:30:100
+PasswordAuthentication yes
+PermitEmptyPasswords no
+PermitRootLogin yes
+PermitTTY yes
+PermitTunnel no
+PermitUserEnvironment no
+PidFile /run/sshd.pid
+PrintLastLog no
+PrintMotd no
+Protocol 2
+PubkeyAuthentication yes
+RekeyLimit default none
+StrictModes yes
+Subsystem sftp /usr/libexec/openssh/sftp-server
+SyslogFacility AUTH
+TCPKeepAlive yes
+UseDNS no
+UsePAM yes
+UsePrivilegeSeparation sandbox
+X11DisplayOffset 10
+X11Forwarding yes
+X11UseLocalhost yes
+ENDOFSSHDCONF
+
+'/usr/sbin/subscription-manager' register --force --org='CSpire_Ent' --activationkey='Non-Prod-7.7'
+'/usr/sbin/subscription-manager' release --set 7.7
+'/usr/sbin/subscription-manager' repos --enable 'rhel-7-server-satellite-tools-6.4-rpms'
+'/usr/sbin/subscription-manager' repos --enable 'rhel-7-server-rh-common-rpms'
+'/usr/sbin/subscription-manager' repos --enable 'rhel-7-server-optional-rpms'
+'/usr/sbin/subscription-manager' repos --enable 'rhel-7-server-rpms'
+'/usr/sbin/subscription-manager' repos --enable 'rhel-7-server-supplementary-rpms'
+'/usr/sbin/subscription-manager' repos --enable 'rhel-7-server-extras-rpms'
+'/usr/bin/wget' --no-check-certificate 'https://sl-udeploy1t/pub/repos/cspire-content-for-redhat-7.7/cspire-content-for-redhat-7.7.repo' -O '/etc/yum.repos.d/cspire-content-for-redhat-7.7.repo'
+rm -rf '/var/cache/yum'
+'/usr/bin/yum' clean all
+'/usr/bin/yum' repolist
+'/usr/bin/yum' history sync
+rpm -e --nodeps perl-Git
+
+for PKG in 'dos2unix' 'nrpe-client' 'gmond' 'nmon' 'git' 'plymouth-theme-cspire' 'stress' 'ncdu' 'getdents'; do
+  if [ $(rpm -qa "${PKG}" | wc -l) -lt 1 ]; then
+    yum -y --nogpgcheck install "${PKG}"
+  fi
+done
+
+if [ $(rpm -qa plymouth-theme-cspire | wc -l) -gt 0 ]; then
+  plymouth-set-default-theme cspire
+  echo '[Daemon]' > '/usr/share/plymouth/plymouthd.defaults'
+  echo 'Theme=cspire' >> '/usr/share/plymouth/plymouthd.defaults'
+  echo 'ShowDelay=3' >> '/usr/share/plymouth/plymouthd.defaults'
+  echo 'DeviceTimeout=5' >> '/usr/share/plymouth/plymouthd.defaults'
+  echo '[Daemon]' > '/etc/plymouth/plymouth.conf'
+  echo 'Theme=cspire' >> '/etc/plymouth/plymouth.conf'
+  dracut -f
+fi
+
+yum -y --nogpgcheck -x *NetworkManager* upgrade
+'/usr/bin/yum' -y erase $(rpm -qa --queryformat "%{NAME}\n" | grep NetworkManager)
+'/usr/bin/yum' -y erase 'alsa-firmware' 'alsa-tools-firmware' 'btrfs-progs' 'desktop-file-utils' 'Red_Hat_Enterprise_Linux-Release_Notes-7-en-US' 'xdg-utils' 'dhclient' 'dracut-network' 'kexec-tools ' 'dhcp-common' 'dhcp-libs' 'docbook-dtds' 'docbook-style-xsl' 'xmlto' 'elfutils-devel' 'net-snmp-devel' 'net-snmp-perl' 'elfutils-libelf-devel' 'emacs-filesystem' 'gdbm-devel' 'perl-ExtUtils-Install' 'perl-ExtUtils-MakeMaker' 'perl-ExtUtils-ParseXS' 'perl-devel' 'ivtv-firmware' 'iwl1000-firmware' 'iwl100-firmware' 'iwl105-firmware' 'iwl135-firmware' 'iwl2000-firmware' 'iwl2030-firmware' 'iwl3160-firmware' 'iwl3945-firmware' 'iwl4965-firmware' 'iwl5000-firmware' 'iwl6000-firmware' 'iwl6000g2a-firmware' 'iwl6000g2b-firmware' 'iwl6050-firmware' 'iwl7260-firmware' 'iwl7265-firmware' 'keyutils-libs-devel' 'krb5-devel' 'openssl-devel' 'libcom_err-devel' 'libdb-devel' 'libgnome-keyring' 'git ' 'perl-Git' 'libselinux-devel' 'libsepol-devel' 'libverto-devel' 'lm_sensors-devel' 'open-vm-tools-desktop' 'pcre-devel' 'redhat-support-lib-python' 'redhat-support-tool' 'snappy' 'wpa_supplicant' 'xz-devel' 'zlib-devel'
+openssl dhparam -out '/etc/pki/tls/private/postfix.dh.param.tmp' 2048
+mv '/etc/pki/tls/private/postfix.dh.param.tmp' '/etc/pki/tls/private/postfix.dh.param'
+chmod 0755 "/etc/ssl/private"
+chmod 0644 "/etc/ssl/private/sl-websvc2t.pem"
+chmod 0644 "/etc/ssl/private/sl-websvc2t-ca-chain.pem"
+chmod 0640 "/etc/ssl/private/sl-websvc2t.key"
+chmod 0644 "/etc/ssl/private/sl-websvc2t.csr"
+chmod 0644 "/etc/ssl/private/sl-websvc2t.p7b"
+chown root:root '/etc/sudoers'
+chmod 0440 '/etc/sudoers'
+cp -a '/etc/sudoers' '/etc/sudoers.orig'
+chmod 0644 '/etc/security/limits.d/21-nofile.conf'
+'/sbin/sysctl' -w net.ipv4.conf.all.accept_redirects=0
+'/sbin/sysctl' -w net.ipv4.conf.default.accept_redirects=0
+'/sbin/sysctl' -w net.ipv4.conf.all.secure_redirects=0
+'/sbin/sysctl' -w net.ipv4.conf.default.secure_redirects=0
+'/sbin/iptables' -A INPUT -p icmp --icmp-type timestamp-request -j DROP
+'/sbin/iptables' -A OUTPUT -p icmp --icmp-type timestamp-reply -j DROP
+'/sbin/iptables' -A INPUT -p icmp --icmp-type address-mask-request -j DROP
+'/sbin/iptables' -A OUTPUT -p icmp --icmp-type address-mask-reply -j DROP
+'/sbin/iptables-save'
+systemctl restart network
+test -x '/usr/bin/update-ca-trust' && '/usr/bin/update-ca-trust'
+test -x '/usr/bin/update-ca-trust' && '/usr/bin/update-ca-trust'
+test -x '/usr/sbin/cacertdir_rehash' && '/usr/sbin/cacertdir_rehash' '/etc/ssl/certs'
+chown root:ntp '/etc/ntp.conf'
+chmod 0640 '/etc/ntp.conf'
+touch '/var/log/ntp'
+chown root:root '/var/log/ntp'
+chmod 0640 '/var/log/ntp'
+cp -a '/var/log/ntp' '/var/log/ntp.conf.orig'
+chmod 0644 '/etc/nsswitch.conf'
+cp -a '/etc/nsswitch.conf' '/etc/nsswitch.conf.orig'
+chown root:root '/etc/auto.master'
+chmod 0644 '/etc/auto.master'
+cp -a '/etc/auto.master' '/etc/auto.master.orig'
+chown root:root '/etc/samba/smb.conf'
+chmod 0644 '/etc/samba/smb.conf'
+cp -a '/etc/samba/smb.conf' '/etc/samba/smb.conf.orig'
+chown root:root '/etc/krb5.conf'
+chmod 0644 '/etc/krb5.conf'
+cp -a '/etc/krb5.conf' '/etc/krb5.conf.orig'
+chown root:root '/etc/ssh/ssh_config'
+chmod 0644 '/etc/ssh/ssh_config'
+cp -a '/etc/ssh/ssh_config' '/etc/ssh/ssh_config.orig'
+chown root:root '/etc/ssh/sshd_banner'
+chmod 0644  '/etc/ssh/sshd_banner'
+chown root:root '/etc/sysconfig/authconfig'
+chmod 0644 '/etc/sysconfig/authconfig'
+cp -a '/etc/sysconfig/authconfig' '/etc/sysconfig/authconfig.orig'
+chmod 0770 /root/bin/rejoin-corp
+chown root:root '/etc/ssh/ssh_config'
+chown root:root '/etc/ssh/sshd_config'
+chmod 0600 '/etc/ssh/sshd_config'
+chmod 0600 '/etc/ssh/ssh_config'
+cp -a '/etc/ssh/ssh_config' '/etc/ssh/ssh_config.orig'
+cp -a '/etc/ssh/sshd_config' '/etc/ssh/sshd_config.orig'
+cp -a '/etc/sssd/sssd.conf' '/etc/sssd/sssd.conf.orig'
+cp -a '/etc/ssh/sshd_config' '/etc/ssh/sshd_config.orig'
+touch '/root/known_hosts'
+chown -R root:root '/root/.ssh'
+chown root:root '/etc/ssh/sshd_config'
+chown root:root '/etc/ssh/sshd_config.orig'
+chown root:root '/etc/sssd/sssd.conf'
+chown root:root '/etc/sssd/sssd.conf.orig'
+chmod 0600 '/root/.ssh/authorized_keys'
+chmod 0600 '/etc/ssh/sshd_config'
+chmod 0600 '/etc/ssh/sshd_config.orig'
+chmod 0700 '/etc/sssd/sssd.conf'
+chmod 0700 '/etc/sssd/sssd.conf.orig'
+
+
+cat << 'ENDOFNRPECONFIG' > '/usr/local/nagios/etc/nrpe.cfg'
+# /usr/local/nagios/etc/nrpe.cfg  -  Configuration file for nrpe
+
+log_facility=daemon
+server_port=5666
+nrpe_user=nagios
+nrpe_group=nagios
+allowed_hosts=127.0.0.1,10.16.128.104
+dont_blame_nrpe=1
+allow_bash_command_substitution=0
+debug=0
+command_timeout=60
+connection_timeout=300
+ssl_version=TLSv1.2+
+ssl_cipher_list=TLSv1.2:!aNULL:!eNULL:!SSLv2:!LOW:!EXP:!RC4:!MD5:@STRENGTH
+ssl_use_adh=1
+ssl_cacert_file=/etc/ssl/certs/CSpire-Enterprise-Root-CA-01.pem
+ssl_cert_file=/etc/ssl/private/sl-websvc2t.pem
+ssl_privatekey_file=/etc/ssl/private/sl-websvc2t.key
+ssl_client_certs=1
+ssl_logging=0x00
+
+# COMMAND DEFINITIONS
+command[check_cs]=/usr/local/nagios/libexec/check_sar_cs.pl $ARG1$
+command[check_ufh]=/usr/local/nagios/libexec/check_sar_ufh.pl $ARG1$
+command[check_log]=/usr/local/nagios/libexec/check_log3.pl $ARG1$
+command[check_runq]=/usr/local/nagios/libexec/check_sar_runq.pl
+command[check_sock]=/usr/local/nagios/libexec/check_sar_sock.pl
+command[check_lsof]=/usr/local/nagios/libexec/check_lsof.pl $ARG1$
+command[check_disk]=/usr/local/nagios/libexec/check_disk $ARG1$
+command[check_disk1]=/usr/local/nagios/libexec/check_disk -w $ARG1$
+command[check_swap]=/usr/local/nagios/libexec/check_swap $ARG1$
+command[check_load]=/usr/local/nagios/libexec/check_load $ARG1$
+command[check_nrpe]=/usr/local/nagios/libexec/$ARG1$
+command[check_nrpe3]=/usr/local/nagios/libexec/check_nrpe3 $ARG1$
+command[check_sysctl]=/usr/local/nagios/libexec/check_sysctl $ARG1$
+command[check_process]=/usr/local/nagios/libexec/check_process.pl $ARG1$
+command[check_filesize]=/usr/local/nagios/libexec/check_file_size.pl $ARG1$
+command[check_nfs_stats]=/usr/local/nagios/libexec/check_sar_nfsc.pl
+command[check_filecount]=/usr/local/nagios/libexec/check_dir_filecnt.sh $ARG1$
+command[check_disk_stats]=/usr/local/nagios/libexec/check_sar_disk.pl $ARG1$
+command[check_cpu_utilization]=/usr/local/nagios/libexec/check_sar_cpu.pl
+command[check_mountpoints]=/usr/local/nagios/libexec/check_mountpoints.sh $ARG1$
+ENDOFNRPECONFIG
+
+cat << 'ENDOFGMONDCONFIG' > '/etc/ganglia/gmond.conf'
+globals {
+  daemonize = yes
+  setuid = yes
+  user = nobody
+  debug_level = 0
+  max_udp_msg_len = 1472
+  mute = no
+  deaf = yes
+  allow_extra_data = yes
+  host_dmax = 86400
+  host_tmax = 20
+  cleanup_threshold = 300
+  gexec = no
+  send_metadata_interval = 60
+}
+
+cluster {
+  name = "CSpire_UNIX_Test_Systems"
+  owner = "unspecified"
+  latlong = "unspecified"
+  url = "unspecified"
+}
+
+host {
+  location = "unspecified"
+}
+
+udp_send_channel {
+  host = 10.16.128.104
+  port = 8671
+  ttl = 1
+}
+
+udp_recv_channel {
+  port = 8671
+}
+
+tcp_accept_channel {
+  port = 8671
+}
+
+modules {
+  module {
+    name = "core_metrics"
+  }
+  module {
+    name = "cpu_module"
+    path = "modcpu.so"
+  }
+  module {
+    name = "disk_module"
+    path = "moddisk.so"
+  }
+  module {
+    name = "load_module"
+    path = "modload.so"
+  }
+  module {
+    name = "mem_module"
+    path = "modmem.so"
+  }
+  module {
+    name = "net_module"
+    path = "modnet.so"
+  }
+  module {
+    name = "proc_module"
+    path = "modproc.so"
+  }
+  module {
+    name = "sys_module"
+    path = "modsys.so"
+  }
+}
+
+collection_group {
+  collect_once = yes
+  time_threshold = 20
+  metric {
+    name = "heartbeat"
+  }
+}
+
+collection_group {
+  collect_every = 60
+  time_threshold = 60
+  metric {
+    name = "cpu_num"
+    title = "CPU Count"
+  }
+  metric {
+    name = "cpu_speed"
+    title = "CPU Speed"
+  }
+  metric {
+    name = "mem_total"
+    title = "Memory Total"
+  }
+  metric {
+    name = "swap_total"
+    title = "Swap Space Total"
+  }
+  metric {
+    name = "boottime"
+    title = "Last Boot Time"
+  }
+  metric {
+    name = "machine_type"
+    title = "Machine Type"
+  }
+  metric {
+    name = "os_name"
+    title = "Operating System"
+  }
+  metric {
+    name = "os_release"
+    title = "Operating System Release"
+  }
+  metric {
+    name = "location"
+    title = "Location"
+  }
+}
+
+collection_group {
+  collect_once = yes
+  time_threshold = 300
+  metric {
+    name = "gexec"
+    title = "Gexec Status"
+  }
+}
+
+collection_group {
+  collect_every = 60
+  time_threshold = 180
+  metric {
+    name = "cpu_user"
+    value_threshold = "1.0"
+    title = "CPU User"
+  }
+  metric {
+    name = "cpu_system"
+    value_threshold = "1.0"
+    title = "CPU System"
+  }
+  metric {
+    name = "cpu_idle"
+    value_threshold = "5.0"
+    title = "CPU Idle"
+  }
+  metric {
+    name = "cpu_nice"
+    value_threshold = "1.0"
+    title = "CPU Nice"
+  }
+  metric {
+    name = "cpu_aidle"
+    value_threshold = "5.0"
+    title = "CPU aidle"
+  }
+  metric {
+    name = "cpu_wio"
+    value_threshold = "1.0"
+    title = "CPU wio"
+  }
+  metric {
+    name = "cpu_steal"
+    value_threshold = "1.0"
+    title = "CPU steal"
+  }
+  metric {
+    name = "cpu_intr"
+    value_threshold = "1.0"
+    title = "CPU intr"
+  }
+  metric {
+    name = "cpu_sintr"
+    value_threshold = "1.0"
+    title = "CPU sintr"
+  }
+}
+
+collection_group {
+  collect_every = 20
+  time_threshold = 90
+  metric {
+    name = "load_one"
+    value_threshold = "1.0"
+    title = "One Minute Load Average"
+  }
+  metric {
+    name = "load_five"
+    value_threshold = "1.0"
+    title = "Five Minute Load Average"
+  }
+  metric {
+    name = "load_fifteen"
+    value_threshold = "1.0"
+    title = "Fifteen Minute Load Average"
+  }
+}
+
+collection_group {
+  collect_every = 80
+  time_threshold = 950
+  metric {
+    name = "proc_run"
+    value_threshold = "1.0"
+    title = "Total Running Processes"
+  }
+  metric {
+    name = "proc_total"
+    value_threshold = "1.0"
+    title = "Total Processes"
+  }
+}
+
+collection_group {
+  collect_every = 40
+  time_threshold = 180
+  metric {
+    name = "mem_free"
+    value_threshold = "1024.0"
+    title = "Free Memory"
+  }
+  metric {
+    name = "mem_shared"
+    value_threshold = "1024.0"
+    title = "Shared Memory"
+  }
+  metric {
+    name = "mem_buffers"
+    value_threshold = "1024.0"
+    title = "Memory Buffers"
+  }
+  metric {
+    name = "mem_cached"
+    value_threshold = "1024.0"
+    title = "Cached Memory"
+  }
+  metric {
+    name = "swap_free"
+    value_threshold = "1024.0"
+    title = "Free Swap Space"
+  }
+}
+
+collection_group {
+  collect_every = 40
+  time_threshold = 300
+  metric {
+    name = "bytes_out"
+    value_threshold = 4096
+    title = "Bytes Sent"
+  }
+  metric {
+    name = "bytes_in"
+    value_threshold = 4096
+    title = "Bytes Received"
+  }
+  metric {
+    name = "pkts_in"
+    value_threshold = 256
+    title = "Packets Received"
+  }
+  metric {
+    name = "pkts_out"
+    value_threshold = 256
+    title = "Packets Sent"
+  }
+}
+
+collection_group {
+  collect_every = 1800
+  time_threshold = 3600
+  metric {
+    name = "disk_total"
+    value_threshold = 1.0
+    title = "Total Disk Space"
+  }
+}
+
+collection_group {
+  collect_every = 40
+  time_threshold = 180
+  metric {
+    name = "disk_free"
+    value_threshold = 1.0
+    title = "Disk Space Available"
+  }
+  metric {
+    name = "part_max_used"
+    value_threshold = 1.0
+    title = "Maximum Disk Space Used"
+  }
+}
+ENDOFGMONDCONFIG
+
+'/bin/systemctl' daemon-reload
+'/bin/systemctl' enable eject-cdrom.service
+'/bin/systemctl' enable crond.service
+'/bin/systemctl' stop crond.service
+'/bin/systemctl' start crond.service
+'/bin/systemctl' enable sssd.service
+'/bin/systemctl' stop sssd.service
+'/bin/systemctl' start sssd.service
+'/bin/systemctl' enable sshd.service
+'/bin/systemctl' restart sshd.service
+'/bin/systemctl' enable autofs.service
+'/bin/systemctl' stop autofs.service
+'/bin/systemctl' start autofs.service
+'/bin/systemctl' enable auditd.service
+'/bin/systemctl' restart crond.service
+'/bin/systemctl' enable oddjobd.service
+'/bin/systemctl' restart oddjobd.service
+'/bin/systemctl' enable ntpd.service
+'/bin/systemctl' start ntpd.service
+'/bin/systemctl' enable postfix.service
+'/bin/systemctl' restart postfix.service
+'/bin/systemctl' enable sysstat.service
+'/bin/systemctl' restart sysstat.service
+'/bin/systemctl' enable rpc-statd-notify.service
+'/bin/systemctl' restart rpc-statd-notify.service
+'/bin/systemctl' enable auth-rpcgss-module.service
+'/bin/systemctl' restart auth-rpcgss-module.service
+'/bin/systemctl' enable rpc-gssd.service
+'/bin/systemctl' restart rpc-gssd.service
+'/bin/systemctl' enable gssproxy.service
+'/bin/systemctl' restart gssproxy.service
+'/bin/systemctl' enable rsyslog.service
+'/bin/systemctl' restart rsyslog.service
+
+cat << 'ENDOFSYSTEMDJOURNALD' > '/etc/systemd/journald.conf'
+#  This file is part of systemd.
+
+[Journal]
+Storage=persistent
+Compress=yes
+#Seal=yes
+#SplitMode=uid
+#SyncIntervalSec=5m
+RateLimitInterval=15s
+RateLimitBurst=5000
+SystemMaxFileSize=128M
+SystemMaxUse=1227M
+RuntimeMaxUse=1227M
+SystemKeepFree=1636M
+RuntimeKeepFree=1636M
+ENDOFSYSTEMDJOURNALD
+
+cat << 'ENDOFRSYSLOG' > '/etc/rsyslog.conf'
+# rsyslog configuration file
+
+#### MODULES ####
+$ModLoad imuxsock # provides support for local system logging (e.g. via logger command)
+$ModLoad imjournal # provides access to the systemd journal
+
+#### GLOBAL DIRECTIVES ####
+
+$WorkDirectory /var/lib/rsyslog
+
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+
+$IncludeConfig /etc/rsyslog.d/*.conf
+
+$OmitLocalLogging on
+
+$IMJournalStateFile imjournal.state
+
+$SystemLogRateLimitInterval 300
+
+$SystemLogRateLimitBurst 100000
+
+#### RULES ####
+:programname, contains, "nrpe" stop
+
+*.info;mail.none;authpriv.none;cron.none                /var/log/messages
+
+authpriv.*                                              /var/log/secure
+
+mail.*                                                  -/var/log/maillog
+
+cron.*                                                  /var/log/cron
+
+*.emerg                                                 :omusrmsg:*
+
+uucp,news.crit                                          /var/log/spooler
+
+local7.*                                                /var/log/boot.log
+ENDOFRSYSLOG
+
+# Overwrite the default /etc/hosts file with the information we want to include
+cat << 'ENDOFETCHOSTS' > '/etc/hosts'
+10.180.112.88     sl-websvc2t.corp.wan       sl-websvc2t
+127.0.0.1         localhost.localdomain      localhost
+::1               localhost.localdomain      localhost
+ENDOFETCHOSTS
+
+cat << 'ENDOFNAGIOSTEMPLATE' > "/tmp/nagios-script.sh"
+echo 'define host {' > '/tmp/sl-websvc2t.cfg'
+echo '              use                             generic-testhost' >> '/tmp/sl-websvc2t.cfg'
+echo '              host_name                       sl-websvc2t' >> '/tmp/sl-websvc2t.cfg'
+echo '              address                         10.180.112.88' >> '/tmp/sl-websvc2t.cfg'
+echo '              contact_groups                  linux-admins,web-ops' >> '/tmp/sl-websvc2t.cfg'
+echo '              hostgroups                      Linux-Nag3,Web Applications Non Production' >> '/tmp/sl-websvc2t.cfg'
+echo '              }' >> '/tmp/sl-websvc2t.cfg'
+echo 'define hostextinfo {' >> '/tmp/sl-websvc2t.cfg'
+echo '              host_name                       sl-websvc2t' >> '/tmp/sl-websvc2t.cfg'
+echo '              icon_image                      redhat.jpg' >> '/tmp/sl-websvc2t.cfg'
+echo '              }' >> '/tmp/sl-websvc2t.cfg'
+if [ -e '/dev/rootvg' ]; then
+  CURDIR="$(pwd)"
+  cd '/dev/rootvg/'
+  for MYDISK in $(ls | egrep -v "(swap|rootlv)"); do
+    echo 'define service {' >> '/tmp/sl-websvc2t.cfg'
+    echo '              use                             unix-testservice' >> '/tmp/sl-websvc2t.cfg'
+    echo '              host_name                       sl-websvc2t' >> '/tmp/sl-websvc2t.cfg'
+    echo '              service_description             '$(df -h /dev/rootvg/${MYDISK} | awk '{print $6}' | tail -n 1)' Disk Check' >> '/tmp/sl-websvc2t.cfg'
+    echo '              check_command                   check_nrpa3!check_disk!"-w 15% -c 10% -E -p /dev/mapper/rootvg-'${MYDISK}'"' >> '/tmp/sl-websvc2t.cfg'
+    echo '              contact_groups                  linux-admins' >> '/tmp/sl-websvc2t.cfg'
+    echo '              }' >> '/tmp/sl-websvc2t.cfg'
+  done
+  cd "${CURDIR}/"
+  CURDIR=''
+fi
+for MYDISK in $(df -lP | tail -n +2 | egrep -v "^(/dev/sda1|/dev/mapper/oraclevg|tmpfs|/dev/mapper/rootvg)" | awk '{print $6}' | egrep "^/" | egrep -v "^/$" | egrep -v "^/dev$" | egrep -v "^/boot$" | egrep -v "^/net/"); do
+  echo 'define service {' >> '/tmp/sl-websvc2t.cfg'
+  echo '              use                             unix-testservice' >> '/tmp/sl-websvc2t.cfg'
+  echo '              host_name                       sl-websvc2t' >> '/tmp/sl-websvc2t.cfg'
+  echo "              service_description             ${MYDISK} Disk Check" >> '/tmp/sl-websvc2t.cfg'
+  echo '              check_command                   check_nrpa3!check_disk!"-w 15% -c 10% -E -p '$(df "${MYDISK}" | tail -n +2 | head -n 1 | awk '{print $1}')'"' >> '/tmp/sl-websvc2t.cfg'
+  echo '              contact_groups                  web-ops' >> '/tmp/sl-websvc2t.cfg'
+  echo '              }' >> '/tmp/sl-websvc2t.cfg'
+done
+for MYDISK in $(df -lP | tail -n +2 | egrep "^/dev/mapper/oraclevg" | awk '{print $6}'); do
+  echo 'define service {' >> '/tmp/sl-websvc2t.cfg'
+  echo '              use                             unix-testservice' >> '/tmp/sl-websvc2t.cfg'
+  echo '              host_name                       sl-websvc2t' >> '/tmp/sl-websvc2t.cfg'
+  echo "              service_description             ${MYDISK} Disk Check" >> '/tmp/sl-websvc2t.cfg'
+  echo '              check_command                   check_nrpa3!check_disk!"-w 15% -c 10% -E -p '$(df "${MYDISK}" | tail -n +2 | head -n 1 | awk '{print $1}')'"' >> '/tmp/sl-websvc2t.cfg'
+  echo '              contact_groups                  db-admins' >> '/tmp/sl-websvc2t.cfg'
+  echo '              }' >> '/tmp/sl-websvc2t.cfg'
+done
+echo 'define service {' >> '/tmp/sl-websvc2t.cfg'
+echo '              host_name                       sl-websvc2t' >> '/tmp/sl-websvc2t.cfg'
+echo '              service_description             NFS Availability Check on sl-websvc2t' >> '/tmp/sl-websvc2t.cfg'
+echo '              use                             unix-testservice' >> '/tmp/sl-websvc2t.cfg'
+echo '              display_name                    NFS Availability Check on sl-websvc2t' >> '/tmp/sl-websvc2t.cfg'
+echo '              check_command                   NFS-Availability-Check!check_nrpe3!-S TLSv1.2+ -t 60:2!-A!!!!!' >> '/tmp/sl-websvc2t.cfg'
+echo '              initial_state                   o' >> '/tmp/sl-websvc2t.cfg'
+echo '              max_check_attempts              5' >> '/tmp/sl-websvc2t.cfg'
+echo '              check_interval                  5' >> '/tmp/sl-websvc2t.cfg'
+echo '              retry_interval                  1' >> '/tmp/sl-websvc2t.cfg'
+echo '              active_checks_enabled           1' >> '/tmp/sl-websvc2t.cfg'
+echo '              passive_checks_enabled          1' >> '/tmp/sl-websvc2t.cfg'
+echo '              check_period                    24x7' >> '/tmp/sl-websvc2t.cfg'
+echo '              event_handler_enabled           0' >> '/tmp/sl-websvc2t.cfg'
+echo '              process_perf_data               1' >> '/tmp/sl-websvc2t.cfg'
+echo '              retain_status_information       1' >> '/tmp/sl-websvc2t.cfg'
+echo '              retain_nonstatus_information    0' >> '/tmp/sl-websvc2t.cfg'
+echo '              notification_interval           60' >> '/tmp/sl-websvc2t.cfg'
+echo '              first_notification_delay        0' >> '/tmp/sl-websvc2t.cfg'
+echo '              notification_period             workhours' >> '/tmp/sl-websvc2t.cfg'
+echo '              notification_options            w,c' >> '/tmp/sl-websvc2t.cfg'
+echo '              notifications_enabled           1' >> '/tmp/sl-websvc2t.cfg'
+echo '              contact_groups                  web-ops' >> '/tmp/sl-websvc2t.cfg'
+echo '              register                        1' >> '/tmp/sl-websvc2t.cfg'
+echo '              }' >> '/tmp/sl-websvc2t.cfg'
+echo '' >> '/tmp/sl-websvc2t.cfg'
+
+mv "/tmp/sl-websvc2t.cfg" "/etc/info/sl-websvc2t-nagios-config.cfg"
+
+if [ -d '/net/prodcd/cds1/Make-Nagios-Configs/New-Configs' ]; then
+   cp "/etc/info/sl-websvc2t-nagios-config.cfg" "/net/prodcd/cds1/Make-Nagios-Configs/New-Configs/sl-websvc2t.cfg"
+fi
+
+ENDOFNAGIOSTEMPLATE
+
+chmod +x /tmp/nagios-script.sh
+/tmp/nagios-script.sh
+
+echo -n 'L1nW.Nja1cdi.' | kinit 'svc-unixdeploy'
+adcli preset-computer --verbose --domain='corp.wan' --domain-realm='CORP.WAN' --domain-ou='OU=Unix,OU=Servers,DC=corp,DC=wan' --login-ccache='KEYRING:persistent:0' --login-user='svc-unixdeploy' --os-name='RedHat-Enterprise-Linux-Server' --os-service-pack='7' --os-version='7' SL-WEBSVC2T
+sleep 10
+adcli join --verbose --domain='corp.wan' --domain-realm='CORP.WAN' --domain-ou='OU=Unix,OU=Servers,DC=corp,DC=wan' --host-fqdn='sl-websvc2t.corp.wan' --host-keytab='/etc/krb5.keytab' --computer-name='SL-WEBSVC2T' --login-ccache='KEYRING:persistent:0' --login-user='svc-unixdeploy' --os-name='RedHat-Enterprise-Linux-Server' --os-service-pack='7' --os-version='7' --user-principal='SL-WEBSVC2T$' --add-samba-data
+
+test -f '/usr/lib/systemd/system/sl-websvc2t-firstboot.service' && systemctl disable sl-websvc2t-firstboot.service
+if [ $(/usr/bin/rpm -qa sl-websvc2t-firstboot | wc -l) -gt 0 ]; then
+  "/usr/bin/rpm" -e --nodeps sl-websvc2t-firstboot
+fi
+
+echo 'RPM Packages Installed At Build Time' >> '/etc/info/hostdata'
+echo '------------------------------------' >> '/etc/info/hostdata'
+"/bin/rpm" -qa --queryformat "%{NAME}\n" | sort -u >> "/etc/info/hostdata"
+init 6
+exit 0
+

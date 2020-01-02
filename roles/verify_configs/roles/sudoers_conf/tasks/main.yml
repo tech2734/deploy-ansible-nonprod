@@ -1,0 +1,28 @@
+---
+
+# Verify /etc/sudoers is correct and replace it from template if it is not correct
+
+  - name: upload /etc/sudoers from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/sudoers_conf/templates/sudoers_conf.j2"
+      dest: /etc/sudoers
+      owner: root
+      group: root
+      mode: '0440'
+      force: yes
+      backup: yes
+      seuser: unconfined_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+    register: sudoers_modified
+
+  - name: clear sssd cache
+    command:  /usr/sbin/sss_cache -E
+    when: sudoers_modified is changed
+
+  - name: restart sssd service if the sudoers file was modified
+    systemd:
+      state: restarted
+      name: sssd
+    when: sudoers_modified is changed

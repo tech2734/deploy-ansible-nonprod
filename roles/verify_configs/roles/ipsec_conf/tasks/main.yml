@@ -1,0 +1,88 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/ipsec.d/policies/block into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/ipsec_conf/templates/block.j2"
+      dest: /etc/ipsec.d/policies/block
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: ipsec_key_file_t
+      selevel: s0
+
+  - name: upload /etc/ipsec.d/policies/clear into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/ipsec_conf/templates/clear.j2"
+      dest: /etc/ipsec.d/policies/clear
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: ipsec_key_file_t
+      selevel: s0
+
+  - name: upload /etc/ipsec.d/policies/clear-or-private into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/ipsec_conf/templates/clear-or-private.j2"
+      dest: /etc/ipsec.d/policies/clear-or-private
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: ipsec_key_file_t
+      selevel: s0
+
+  - name: upload /etc/ipsec.d/policies/portexcludes.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/ipsec_conf/templates/portexcludes.conf.j2"
+      dest: /etc/ipsec.d/policies/portexcludes.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: ipsec_key_file_t
+      selevel: s0
+
+  - name: upload /etc/ipsec.d/policies/private into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/ipsec_conf/templates/private.j2"
+      dest: /etc/ipsec.d/policies/private
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: ipsec_key_file_t
+      selevel: s0
+
+  - name: upload /etc/ipsec.d/policies/private-or-clear into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/ipsec_conf/templates/private-or-clear.j2"
+      dest: /etc/ipsec.d/policies/private-or-clear
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: ipsec_key_file_t
+      selevel: s0
+

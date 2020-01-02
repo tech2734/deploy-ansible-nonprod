@@ -1,0 +1,13 @@
+---
+
+# Create kickstart template
+
+  - name: ---- CREATE KICKSTART FILE ----
+    template:
+      src: kickstart.j2
+      dest: /var/www/html/pub/kickstarts/{{ inventory_hostname }}.ks
+      owner: root
+      group: root
+      mode: 0644
+    delegate_to: sl-udeploy1t
+

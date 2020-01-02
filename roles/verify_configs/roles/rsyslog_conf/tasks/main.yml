@@ -1,0 +1,19 @@
+---
+
+# Put a rsyslog.conf in place from template - made by JB
+
+  - name: upload rsyslog.conf from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/rsyslog_conf/templates/rsyslog_conf.j2"
+      dest: /etc/rsyslog.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: syslog_conf_t
+      selevel: s0
+    notify: restart-rsyslog
+    when: ansible_hostname not in 'sl-usyslog1t, sl-dnoobslog1p'

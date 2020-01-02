@@ -1,0 +1,3 @@
+[all]
+sl-testserv1t ansible_host=10.180.112.54
+sl-testserv2t ansible_host=10.180.112.89 NumCPU=4 Memory=8192 Annotation="This is a test"

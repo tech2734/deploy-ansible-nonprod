@@ -1,0 +1,70 @@
+---
+#
+# Setup Certificate files for system
+#
+
+  - name: ---- MAKE CERT DIRECTORY ----
+    file:
+      path: "{{ CertDir }}/{{ inventory_hostname }}"
+      state: directory
+      owner: root
+      group: root
+      mode: 0755
+      seuser: unconfined_u
+      serole: object_r
+      setype: httpd_sys_content_t
+      selevel: s0
+    delegate_to: sl-udeploy1t
+
+  - name: ---- GET FACTS ----
+    setup:
+      gather_subset: 'all'
+
+  - name: ---- TEST CERT EXISTS ----
+    shell: ls {{ CertDir }}/{{ inventory_hostname }}/{{ inventory_hostname }}.pem 
+    register: certExists
+    ignore_errors: yes
+    delegate_to: sl-udeploy1t
+
+  - name: ---- CERT CREATION MESSAGE ----
+    debug:
+      msg: Cert does not exist.  Proceeding with cert creation.
+    when: certExists is failed
+
+  - name: ---- CERT ALREADY EXISTS MESSAGE ----
+    debug:
+      msg: Cert already exists.  No need to create a certificate at this time.
+    when: certExists is not failed
+
+  - name: ---- CERTIFICATE CREATION ----
+    shell: getcert request -I {{ inventory_hostname }}-task -c {{ SCEPServer }} -k {{ CertDir }}/{{ inventory_hostname }}/{{ inventory_hostname }}.key -f {{ CertDir }}/{{ inventory_hostname }}/{{ inventory_hostname }}.pem -N cn={{ inventory_hostname }}.corp.wan -D {{ inventory_hostname }}.corp.wan -D {{ inventory_hostname }} -D {{ ansible_host }} -L {{ EnrollPass }}
+    when: certExists is failed
+    delegate_to: sl-udeploy1t
+
+  - name: sleep for 30 seconds to wait on cert creation
+    wait_for:
+      timeout: 30
+    delegate_to: localhost
+
+  - name: ---- COPY CERTIFICATE KEY FILE ----
+    copy:
+      src: "{{ CertDir }}/{{ inventory_hostname }}/{{ inventory_hostname }}.key"
+      dest: /etc/ssl/private/{{ inventory_hostname }}.key
+      owner: root
+      group: root
+      mode: 0640
+
+  - name: ---- COPY CERTIFICATE PEM FILE ----
+    copy:
+      src: "{{ CertDir }}/{{ inventory_hostname }}/{{ inventory_hostname }}.pem"
+      dest: /etc/ssl/private/{{ inventory_hostname }}.pem
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: ---- DELETE CERT TRACKING ----
+    shell: getcert stop-tracking -i {{ inventory_hostname }}-task
+    when: certExists is failed
+    delegate_to: sl-udeploy1t
+
+...

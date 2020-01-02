@@ -1,0 +1,202 @@
+---
+
+    - name: ---- WAIT FOR SERVER TO FINISH BEING DEPLOYED ----
+      local_action: wait_for
+      args:
+        host: "{{ ansible_host }}"
+        port: 22
+        state: started
+        delay: 30
+        timeout: 600
+   
+    - name: ---- GATHER ANSIBLE HOSTS FACTS ----
+      setup: 
+        gather_subset:
+          - 'all'
+
+    - name: ---- MAKE SURE /etc/resolv.conf IS CORRECT ----
+      copy:
+        content: |
+                  # /etc/resolv.conf
+
+                  domain corp.wan
+                  nameserver 10.16.229.90
+                  nameserver 10.180.4.90
+                  options timeout:2 attempts:1 rotate
+        dest: /etc/resolv.conf
+
+    - name: ---- CREATE GROUPS ----
+      group:
+        name: "{{ item.name }}"
+        gid: "{{ item.gid }}"
+        state: present
+      loop:
+        - { name: 'dba_local', gid: '150' }
+        - { name: 'csapp', gid: '213' }
+
+    - name: ---- CREATE USERS ----
+      user:
+        name: "{{ item.name }}"
+        group: "{{ item.group }}"
+        uid: "{{ item.uid }}"
+        state: present
+        generate_ssh_key: yes
+        ssh_key_bits: 4096
+        shell: "{{ item.shell }}"
+      loop:
+        - { name: 'oracle', group: 'dba_local', uid: '150', shell: '/bin/ksh' }
+        - { name: 'csapp', group: 'csapp', uid: '213', shell: '/bin/bash' }
+
+    - name: ---- STOP AUTOFS ----
+      systemd:
+        name: autofs
+        state: stopped
+ 
+    - name: ---- CREATE DIRECTORIES AND SET PERMISSIONS ----
+      file:
+        state: directory
+        name: "{{ item }}"
+        mode: 0755
+      with_items:
+        - /etc/info
+        - /etc/ssl/private
+        - /etc/pki/tls/private
+        - /net/prodcd
+        - /net/prodcd/cds1
+        - /nfs/homes
+        - /etc/audit/rules.d
+        - /usr/local/csapps
+        - /etc/samba
+
+    - name: ---- CREATE HOME DIRECTORIES AND SET PERMISSIONS ----
+      file:
+        state: directory
+        name: "{{ item }}"
+        mode: 0700
+      with_items:
+        - /root/.ssh
+        - /root/bin
+
+    - name: ---- REMOVE UNWANTED PACKAGES ----
+      yum:
+        state: absent
+        name: ['alsa-firmware', 'alsa-tools-firmware', 'btrfs-progs', 'desktop-file-utils', 'dhclient', 'dhcp-common', 'dhcp-libs', 'docbook-dtds', 'docbook-style-xsl', 'dracut-network', 'elfutils-devel', 'elfutils-libelf-devel', 'emacs-filesystem', 'gdbm-devel', 'git', 'ivtv-firmware', 'iwl100-firmware', 'iwl1000-firmware', 'iwl105-firmware', 'iwl135-firmware', 'iwl2000-firmware', 'iwl2030-firmware', 'iwl3160-firmware', 'iwl3945-firmware', 'iwl4965-firmware', 'iwl5000-firmware', 'iwl6000-firmware', 'iwl6000g2a-firmware', 'iwl6000g2b-firmware', 'iwl6050-firmware', 'iwl7260-firmware', 'iwl7265-firmware', 'kexec-tools', 'keyutils-libs-devel', 'krb5-devel', 'libcom_err-devel', 'libdb-devel', 'libgnome-keyring', 'libselinux-devel', 'libsepol-devel', 'libverto-devel', 'lm_sensors-devel', 'net-snmp-devel', 'net-snmp-perl', 'open-vm-tools-desktop', 'openssl-devel', 'pcre-devel', 'perl-ExtUtils-Install', 'perl-ExtUtils-MakeMaker', 'perl-ExtUtils-ParseXS', 'perl-Git', 'perl-devel', 'redhat-support-lib-python', 'redhat-support-tool', 'rhn-check', 'rhn-client-tools', 'rhn-setup', 'rhnsd', 'snappy', 'wpa_supplicant', 'xdg-utils', 'xmlto', 'xz-devel', 'zlib-devel']
+
+    - name: ---- DOWNLOAD CSPIRE REPO KEY ----
+      get_url:
+        url: https://{{ DeployServer }}/pub/repos/cspire-content-for-redhat-7.7/repodata/repomd.xml.key
+        dest: /etc/pki/rpm-gpg/CSpire-GPG-Key
+        validate_certs: no
+
+    - name: ---- DOWNLOAD EPEL REPO KEY ----
+      get_url:
+        url: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
+        dest: /etc/pki/rpm-gpg/EPEL-7-Key
+        validate_certs: no
+
+    - name: ---- DOWNLOAD SATELLITE RPM ----
+      get_url:
+        url: https://{{ SatelliteServer }}/pub/katello-ca-consumer-latest.noarch.rpm
+        dest: /root/katello-ca-consumer-latest.noarch.rpm
+        validate_certs: no
+
+    - name: ---- INSTALL SATELLITE RPM ----
+      yum:
+        name: /root/katello-ca-consumer-latest.noarch.rpm
+        state: present
+
+    - name: ---- SUBSCRIBE TO RED HAT SATELLITE SERVER ----
+      redhat_subscription:
+        activationkey: "{{ ActivationKey }}"
+        org_id: CSpire_Ent
+        state: present
+        consumer_name: "{{ inventory_hostname }}.corp.wan"
+
+    - name: ---- INSTALL KATELLO AGENT AND TOOLS ----
+      yum:
+        name: katello-agent
+        state: present
+
+    - name: ---- COPY CSPIRE-CONTENT-FOR-REDHAT-7.7 REPO ----
+      copy:
+        src: cspire-content-for-redhat-7.7.repo
+        dest: /etc/yum.repos.d/cspire-content-for-redhat-7.7.repo
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: ---- INSTALL NECESSARY PACKAGES ----
+      yum:
+        name: ['sssd', 'realmd', 'krb5-workstation', 'adcli', 'oddjob', 'oddjob-mkhomedir', 'plymouth', 'plymouth-core-libs', 'plymouth-scripts', 'plymouth-theme-cspire', 'dos2unix', 'nrpe-client', 'gmond', 'nmon', 'ncdu', 'stress', 'getdents', 'git', 'autofs', 'autoconf', 'automake', 'bash-completion', 'certmonger', 'at', 'abrt', 'aide', 'arpwatch', 'attr', 'audispd-plugins', 'colord', 'cpp', 'dconf', 'dstat', 'gcc', 'gcc-c++', 'glib-networking', 'glibc-headers', 'gpm-libs', 'gssproxy', 'iotop', 'json-glib', 'kernel-devel', 'gtk2', 'gtk3', 'kernel-headers', 'kpatch', 'ksh', 'libXfont', 'libXaw', 'libXcomposite', 'libXcursor', 'libXdmcp', 'libXevie', 'libXfont2', 'libXi', 'libXrandr', 'libXt', 'libXtst', 'libXv', 'libXxf86dga', 'libXxf86misc', 'libdmx', 'libICE', 'libSM', 'libepoxy', 'libfontenc', 'libgnome-keyring', 'libgusb', 'libjpeg-turbo', 'libmpc', 'libnotify', 'libogg', 'libreswan', 'libsecret', 'libtheora', 'libtiff', 'libusbx', 'libvisual', 'libvorbis', 'libwebp', 'libxkbcommon', 'libxkbcommon-x11', 'libxkbfile', 'libxklavier', 'lsof', 'ltrace', 'mailcap', 'mailx', 'man-pages', 'pam_krb5', 'net-snmp-libs', 'net-snmp-agent-libs', 'ntp', 'ntpdate', 'nfs-utils', 'net-tools', 'tcpdump', 'telnet', 'wget', 'vim-common', 'vim-enhanced', 'xml-common', 'xterm', 'zip']    
+        state: present
+
+    - name: ---- COPY FILES TO NEW SERVER ----
+      copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: root
+        mode: "{{ item.mode }}"
+      loop:
+        - { src: 'auto.direct', dest: '/etc/auto.direct', mode: '0644' }
+        - { src: 'auto.home', dest: '/etc/auto.home', mode: '0644' }
+        - { src: 'auto.master', dest: '/etc/auto.master', mode: '0644' }
+        - { src: 'audit.rules', dest: '/etc/audit/audit.rules', mode: '0640' }
+        - { src: 'rules.d/audit.rules', dest: '/etc/audit/rules.d/audit.rules', mode: '0640' }
+        - { src: 'authconfig', dest: '/etc/sysconfig/authconfig', mode: '0644' }
+        - { src: 'authorized_keys', dest: '/root/.ssh/authorized_keys', mode: '0600' }
+        - { src: 'chrony.conf', dest: '/etc/chrony.conf', mode: '0644' }
+        - { src: 'krb5.conf', dest: '/etc/krb5.conf', mode: '0644' }
+        - { src: 'ntp.conf', dest: '/etc/ntp.conf', mode: '0644' }
+        - { src: 'nsswitch.conf', dest: '/etc/nsswitch.conf', mode: '0644' }
+        - { src: 'postfix.pem', dest: '/etc/pki/tls/private/postfix.pem', mode: '0644' }
+        - { src: 'postfix.key', dest: '/etc/pki/tls/private/postfix.key', mode: '0640' }
+        - { src: 'profile', dest: '/etc/profile', mode: '0644' }
+        - { src: '.bash_profile', dest: '/root/.bash_profile', mode: '0644' }
+        - { src: '.bashrc', dest: '/root/.bashrc', mode: '0644' }
+        - { src: 'CSpire-Enterprise-Int-CA-01.pem', dest: '/etc/ssl/certs/CSpire-Enterprise-Int-CA-01.pem', mode: '0644' }
+        - { src: 'CSpire-Enterprise-Root-CA-01.pem', dest: '/etc/ssl/certs/CSpire-Enterprise-Root-CA-01.pem', mode: '0644' }
+        - { src: 'CSpire-Satellite-Server-SSL-Cert.pem', dest: '/etc/ssl/certs/CSpire-Satellite-Server-SSL-Cert.pem', mode: '0644' }
+        - { src: 'profile.d/256term.csh', dest: '/etc/profile.d/256term.csh', mode: '0644' }
+        - { src: 'profile.d/256term.sh', dest: '/etc/profile.d/256term.sh', mode: '0644' }
+        - { src: 'profile.d/alias.sh', dest: '/etc/profile.d/alias.sh', mode: '0644' }
+        - { src: 'profile.d/bash_completion.sh', dest: '/etc/profile.d/bash_completion.sh', mode: '0644' }
+        - { src: 'profile.d/colorgrep.csh', dest: '/etc/profile.d/colorgrep.csh', mode: '0644' }
+        - { src: 'profile.d/colorgrep.sh', dest: '/etc/profile.d/colorgrep.sh', mode: '0644' }
+        - { src: 'profile.d/colorls.csh', dest: '/etc/profile.d/colorls.csh', mode: '0644' }
+        - { src: 'profile.d/colorls.sh', dest: '/etc/profile.d/colorls.sh', mode: '0644' }
+        - { src: 'profile.d/csh.local', dest: '/etc/profile.d/csh.local', mode: '0644' }
+        - { src: 'profile.d/lang.csh', dest: '/etc/profile.d/lang.csh', mode: '0644' }
+        - { src: 'profile.d/lang.sh', dest: '/etc/profile.d/lang.sh', mode: '0644' }
+        - { src: 'profile.d/less.csh', dest: '/etc/profile.d/less.csh', mode: '0644' }
+        - { src: 'profile.d/less.sh', dest: '/etc/profile.d/less.sh', mode: '0644' }
+        - { src: 'profile.d/lscolor.sh', dest: '/etc/profile.d/lscolor.sh', mode: '0644' }
+        - { src: 'profile.d/ps1.sh', dest: '/etc/profile.d/ps1.sh', mode: '0644' }
+        - { src: 'profile.d/sh.local', dest: '/etc/profile.d/sh.local', mode: '0644' }
+        - { src: 'profile.d/vim.csh', dest: '/etc/profile.d/vim.csh', mode: '0644' }
+        - { src: 'profile.d/vim.sh', dest: '/etc/profile.d/vim.sh', mode: '0644' }
+        - { src: 'profile.d/which2.csh', dest: '/etc/profile.d/which2.csh', mode: '0644' }
+        - { src: 'profile.d/which2.sh', dest: '/etc/profile.d/which2.sh', mode: '0644' }
+        - { src: 'limits.d/20-nproc.conf', dest: '/etc/security/limits.d/20-nproc.conf', mode: '0644' }
+        - { src: 'limits.d/21-nofile.conf', dest: '/etc/security/limits.d/21-nofile.conf', mode: '0644' }
+        - { src: 'rejoin-corp', dest: '/root/bin/rejoin-corp', mode: '0750' }
+        - { src: 'smb.conf', dest: '/etc/samba/smb.conf', mode: '0644' }
+        - { src: 'ssh_config', dest: '/etc/ssh/ssh_config', mode: '0644' }
+        - { src: 'sshd_banner', dest: '/etc/ssh/sshd_banner', mode: '0644' }
+        - { src: 'sysctl.conf', dest: '/etc/sysctl.conf', mode: '0644' }
+        - { src: 'journald.conf', dest: '/etc/systemd/journald.conf', mode: '0640' }
+        - { src: 'rsyslog.conf', dest: '/etc/rsyslog.conf', mode: '0640' }
+
+    - name: ---- COPY TEMPLATES TO NEW SERVER ----
+      template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: root
+        mode: "{{ item.mode }}"
+      loop:
+        - { src: 'sshd_config.j2', dest: '/etc/ssh/sshd_config', mode: '0600' }
+        - { src: 'hosts.j2', dest: '/etc/hosts', mode: '0640' }
+        - { src: 'sssd_conf.j2', dest: '/etc/sssd/sssd.conf', mode: '0700' }
+
+...

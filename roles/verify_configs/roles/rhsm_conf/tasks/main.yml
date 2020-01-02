@@ -1,0 +1,32 @@
+---
+
+# Put rhsm configs in place from templates
+
+  - name: upload rhsm.conf from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/rhsm_conf/templates/rhsm_conf.j2"
+      dest: /etc/rhsm/rhsm.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload katello.facts from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/rhsm_conf/templates/katello_facts.j2"
+      dest: /etc/rhsm/facts/katello.facts
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+

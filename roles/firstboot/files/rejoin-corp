@@ -1,0 +1,347 @@
+#!/bin/bash
+
+if [ -z "${TERM}" ]; then
+  TERM=xterm
+  export TERM
+fi
+
+function DISPLAY_USAGE() {
+  printf "\\033[38;5;190m======================================================================================\n"
+  printf "\\033[38;5;190m   Usage:\n"
+  printf "\\033[38;5;190m          $0 without options will try to rejoin a system to the domain\n"
+  echo ''
+  printf "\\033[38;5;190m          $0 plus any option or any number of options displays this message\n"
+  printf "\\033[38;5;190m          and the instructions to rejoin a system to the domain manually\n"
+  printf "\\033[38;5;190m          which can be seen below.\n"
+  printf "\\033[38;5;190m======================================================================================\n"
+  echo ''
+  echo ''
+  echo ''
+  printf "\\033[38;5;46m---------------------------------------------------------------------------\n"
+  printf "\\033[38;5;46m    Instructions to rejoin a system to the corp.wan domain manually\n"
+  printf "\\033[38;5;46m---------------------------------------------------------------------------\n"
+  echo ''
+  if [ -x "/usr/bin/yum" ];then
+    printf "\\033[38;5;190m$(hostname)\\033[0m is a \\033[38;5;160mRed Hat\\033[0m system.\n"
+    echo ''
+    printf "\\033[0mFor \\033[38;5;160mRed Hat\\033[0m systems, you should try performing the following steps:\n"
+    echo ''
+    printf "   1.  Get a Kerberos ticket for the svc-udeploy account by running:\n"
+    printf "\\033[38;5;51m          echo -n 'L1nW.Nja1cdi.' | kinit svc-unixdeploy\n"
+    echo ''
+    printf "\\033[0m          You can test to see if the ticket was retrieved successfully by running:\n"
+    printf "\\033[38;5;51m         /usr/bin/klist\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   2.  Use adcli to update the account information for this host in Active Directory.\n"
+    printf "       The following command should work as long as the authentication packages are\n"
+    printf "       configured correctly and running the hostname command returns the correct name.\n"
+    echo ''
+    printf "\\033[38;5;51m          adcli update --domain='corp.wan' --host-fqdn="$(hostname -f)" --host-keytab='/etc/krb5.keytab' --computer-name="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')" --os-name='RedHat-Enterprise-Linux-Server' --os-version='7' --os-service-pack='7' --user-principal="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" --login-ccache='KEYRING:persistent:0'\n"
+    echo ''
+    printf "\\033[38;5;160m        Note: \\033[38;5;166mContinue the rest of the steps even if the adcli command fails.\n"
+    printf "\\033[38;5;166m              At this point it is not going to hurt anything.\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   4.   Flush the sssd cache by running:\n"
+    printf "\\033[38;5;51m           sss_cache -E\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   5.   If you were successful in rejoining the domain, get a Kerberos ticket for this host.\n"
+    printf "        The following command should work if the authentication packages are configured correctly\n"
+    printf "        and running the hostname command returns the correct name.\n"
+    echo ''
+    printf "\\033[38;5;51m           kinit -R "$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" -k -t '/etc/krb5.keytab'\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   6.   Restart the sssd service by running:\n"
+    printf "\\033[38;5;51m           systemctl restart sssd\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   7.   Test to see if authentication is working properly by using sudo to run a command as yourself.\n"
+    printf "        If your password is accepted then you are good to go.  If is still is not working then you\n"
+    printf "        are on you own because I have done all I can do.\n"
+    echo ''
+    echo ''
+    echo ''
+    printf "\\033[38;5;46mSingle Command String for the Bold (or the impatient):\\033[0m\n"
+    printf "\\033[38;5;46m------------------------------------------------------\\033[0m\n"
+    printf "\\033[38;5;51mecho -n 'L1nW.Nja1cdi.' | kinit svc-unixdeploy; adcli update --domain='corp.wan' --host-fqdn="$(hostname -f)" --host-keytab='/etc/krb5.keytab' --computer-name="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')" --os-name='RedHat-Enterprise-Linux-Server' --os-version='7' --os-service-pack='7' --user-principal="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" --login-ccache='KEYRING:persistent:0'; sleep 5; sss_cache -E; kinit -R "$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" -k -t '/etc/krb5.keytab'; systemctl restart sssd\\033[0m\n\n"
+  elif [ -x "/usr/bin/zypper" ]; then
+    printf "\\033[38;5;46mThis script is not meant to run on SuSE servers.  Please locate the older version of rejoin-corp\\033[0m\n"
+    echo ''
+    exit 1
+  fi
+}
+
+function GIVE_HELP() {
+  echo ''
+  printf "\\033[0mThe process of rejoining \\033[38;5;190m$(hostname)\\033[0m to the corp.wan domain was not successful.\n"
+  printf "The process failed due to the following reason:\n"
+  echo ''
+  DISPLAY_ERROR
+  printf "\\033[0mYou will need rejoin \\033[38;5;190m$(hostname)\\033[0m to the corp.wan domain manually.\n"
+  printf "Hopefully the following instructions will provide adequate assistance.\n"
+  echo ''
+
+  if [ -x "/usr/bin/yum" ];then
+    printf "\\033[38;5;190m$(hostname)\\033[0m is a \\033[38;5;160mRed Hat\\033[0m system.\n"
+    echo ''
+    printf "\\033[0mFor \\033[38;5;160mRed Hat\\033[0m systems, you should try performing the following steps:\n"
+    echo ''
+    printf "   1.  Get a Kerberos ticket for the svc-udeploy account by running:\n"
+    printf "\\033[38;5;51m          echo -n 'L1nW.Nja1cdi.' | kinit svc-unixdeploy\n"
+    echo ''
+    printf "\\033[0m          You can test to see if the ticket was retrieved successfully by running:\n"
+    printf "\\033[38;5;51m         /usr/bin/klist\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   2.  Use adcli to update the account information for this host in Active Directory.\n"
+    printf "       The following command should work as long as the authentication packages are\n"
+    printf "       configured correctly and running the hostname command returns the correct name.\n"
+    echo ''
+    printf "\\033[38;5;51m          adcli update --domain='corp.wan' --host-fqdn="$(hostname -f)" --host-keytab='/etc/krb5.keytab' --computer-name="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')" --os-name='RedHat-Enterprise-Linux-Server' --os-version='7' --os-service-pack='7' --user-principal="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" --login-ccache='KEYRING:persistent:0'\n"
+    echo ''
+    printf "\\033[38;5;160m        Note: \\033[38;5;166mContinue the rest of the steps even if the adcli command fails.\n"
+    printf "\\033[38;5;166m              At this point it is not going to hurt anything.\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   4.   Flush the sssd cache by running:\n"
+    printf "\\033[38;5;51m           sss_cache -E\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   5.   If you were successful in rejoining the domain, get a Kerberos ticket for this host.\n"
+    printf "        The following command should work if the authentication packages are configured correctly\n"
+    printf "        and running the hostname command returns the correct name.\n"
+    echo ''
+    printf "\\033[38;5;51m           kinit -R "$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" -k -t '/etc/krb5.keytab'\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   6.   Restart the sssd service by running:\n"
+    printf "\\033[38;5;51m           systemctl restart sssd\n"
+    echo ''
+    echo ''
+    printf "\\033[0m   7.   Test to see if authentication is working properly by using sudo to run a command as yourself.\n"
+    printf "        If your password is accepted then you are good to go.  If is still is not working then you\n"
+    printf "        are on you own because I have done all I can do.\n"
+    echo ''
+    echo ''
+    echo ''
+    printf "\\033[38;5;46mSingle Command String for the Bold (or the impatient):\\033[0m\n"
+    printf "\\033[38;5;46m------------------------------------------------------\\033[0m\n"
+    printf "\\033[38;5;51mecho -n 'L1nW.Nja1cdi.' | kinit svc-unixdeploy; adcli update --domain='corp.wan' --host-fqdn="$(hostname -f)" --host-keytab='/etc/krb5.keytab' --computer-name="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')" --os-name='RedHat-Enterprise-Linux-Server' --os-version='7' --os-service-pack='7' --user-principal="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" --login-ccache='KEYRING:persistent:0'; sleep 5; sss_cache -E; kinit -R "$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" -k -t '/etc/krb5.keytab'; systemctl restart sssd\\033[0m\n\n"
+  elif [ -x "/usr/bin/zypper" ]; then
+    printf "\\033[38;5;46mThis script is not meant to run on SuSE servers.  Please locate the older version of rejoin-corp\\033[0m\n"
+    echo ''
+    exit 1
+  fi
+}
+
+if [ $# -gt 0 ]; then
+  DISPLAY_USAGE
+  exit 0
+fi
+
+printf "\\033[38;5;46mBeginning process of rejoining \\033[38;5;190m$(hostname)\\033[38;5;46m to the corp.wan domain...\\033[0m\n"
+echo ''
+if [ ! -x "/usr/bin/klist" ]; then
+  if [ -x "/usr/bin/yum" ]; then
+    printf "\\033[38;5;46mAttempting to install krb5-workstation because it provides the kinit and klist.\\033[0m\n"
+    printf "\\033[38;5;46mThese applications are required to continue.\\033[0m\n"
+    echo ''
+    "/usr/bin/yum" -y install krb5-workstation.x86_64
+    RET="$?"
+
+    if [ "${RET}" -eq '0' ]; then
+      printf "\\033[38;5;46mkrb5-workstation was installed successfully.\\033[0m\n"
+      echo ''
+    else
+      function DISPLAY_ERROR() {
+        printf "\\033[38;5;160mERROR:  The installation of krb5-workstation was not successful.\\033[0m\n"
+        printf "\\033[38;5;160mYou may wish to verify that this system is registered to the satellite server correctly.\\033[0m\n"
+        echo ''
+        printf "\\033[38;5;160mCannot continue without klist and kinit.\\033[0m\n"
+      }
+      GIVE_HELP
+      exit 1
+    fi
+  elif [ -x "/usr/bin/zypper" ]; then
+    printf "\\033[38;5;46mThis script is not meant to run on SuSE servers.  Please locate the older version of rejoin-corp\\033[0m\n"
+    echo ''
+    exit 1
+  fi
+fi
+
+printf "\\033[38;5;46mUsing svc-unixdeploy to get a Kerberos ticket from one of the domain controllers...\\033[0m\n"
+echo ''
+echo -n 'L1nW.Nja1cdi.' | kinit svc-unixdeploy
+RET="$?"
+if [ "${RET}" -eq 0 ]; then
+  printf "\\033[38;5;46mThe attempt to get a Kerberos ticket was successful.\\033[0m\n"
+  printf "\\033[38;5;46mThis is the ticket that was retrieved:\\033[0m\n"
+  klist
+else
+  function DISPLAY_ERROR() {
+    printf "\\033[38;5;160mERROR:  The attempt to get a kerberos ticket was not successful.\\033[0m\n"
+    printf "\\033[38;5;160m        Cannot continue without a ticket to use for authenticating\\033[0m\n"
+    printf "\\033[38;5;160m        against Active Directory.\\033[0m\n"
+    echo ''
+  }
+  GIVE_HELP
+  exit 1
+fi
+
+if [ $(rpm -qa adcli | wc -l) -eq '0' ]; then
+  printf "\\033[38;5;46mAttempting to install adcli because it is required...\\033[0m\n"
+  echo ''
+  if [ -x "/usr/bin/yum" ]; then
+    "/usr/bin/yum" -y install adcli
+    RET="$?"
+
+    if [ "${RET}" -eq '0' ]; then
+      printf "\\033[38;5;46mThe adcli package was installed successfully.\\033[0m\n"
+      echo ''
+    else
+      function DISPLAY_ERROR() {
+        printf "\\033[38;5;160mERROR:  The adcli package is not installed and the attempt to install package failed.\\033[0m\n"
+        printf "\\033[38;5;160mYou may wish to verify that this system is registered to the satellite server correctly.\\033[0m\n"
+        echo ''
+        printf "\\033[38;5;160mCannot continue without adcli.\\033[0m\n"
+        echo ''
+      }
+      GIVE_HELP
+      exit 1
+    fi
+  elif [ -x "/usr/bin/zypper" ]; then
+    printf "\\033[38;5;46mThis script is not meant to run on SuSE servers.  Please locate the older version of rejoin-corp\\033[0m\n"
+    echo ''
+    exit 1
+  fi
+fi
+
+printf "\\033[38;5;46mUsing adcli to update the system information for \\033[38;5;190m$(hostname)\\033[38;5;46m in Active Directory...\\033[0m\n"
+
+if [ -x "/usr/bin/yum" ]; then
+  adcli update --domain='corp.wan' --host-fqdn="$(hostname -f)" --host-keytab='/etc/krb5.keytab' --computer-name="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')" --os-name='RedHat-Enterprise-Linux-Server' --os-version='7' --os-service-pack='7' --user-principal="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" --login-ccache='KEYRING:persistent:0'
+elif [ -x "/usr/bin/zypper" ]; then
+    printf "\\033[38;5;46mThis script is not meant to run on SuSE servers.  Please locate the older version of rejoin-corp\\033[0m\n"
+    echo ''
+    exit 1
+fi
+
+echo ''
+printf "\\033[38;5;46mPausing for 10 seconds just to make sure we are not rushing the domain controllers...\\033[0m\n"
+sleep 10
+echo ''
+printf "\\033[38;5;46mAttempting to rejoin \\033[38;5;190m$(hostname)\\033[38;5;46m to the corp.wan domain using adcli join...\\033[0m\n"
+adcli join --verbose --domain='corp.wan' --domain-realm='CORP.WAN' --domain-ou='OU=Unix,OU=Servers,DC=corp,DC=wan' --host-fqdn="$(hostname -f)" --host-keytab='/etc/krb5.keytab' --computer-name="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')" --login-ccache='KEYRING:persistent:0' --login-user='svc-unixdeploy' --os-name='RedHat-Enterprise-Linux-Server' --os-service-pack='7' --os-version='7' --user-principal="$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$"
+RET="$?"
+echo ''
+
+if [ "${RET}" -eq 0 ]; then
+  printf "\\033[38;5;46mThe attempt to rejoin the corp.wan domain was successful.\\033[0m\n"
+  echo ''
+else
+  function DISPLAY_ERROR() {
+    printf "\\033[38;5;160mERROR:  Rejoining \\033[38;5;190m$(hostname)\\033[38;5;160m the corp.wan domain using adcli join was not successful.\\033[0m\n"
+    echo ''
+    }
+  GIVE_HELP
+  exit 1
+fi
+
+if [ ! -x "/usr/sbin/sss_cache" ]; then
+  if [ -x "/usr/bin/yum" ]; then
+    printf "\\033[38;5;46mAttempting to install sssd-common because it provides /usr/bin/sss_cache.\\033[0m\n"
+    printf "\\033[38;5;46mThis package is required for clearing the sssd cache.\\033[0m\n"
+    echo ''
+    '/usr/bin/yum' -y install sssd-common.x86_64
+    if [ $(rpm -qa sssd-common | wc -l) -gt 0 ]; then
+      printf "\\033[38;5;46mThe installation of sssd-common was successful.\\033[0m\n"
+      printf "\\033[38;5;46mClearing the sssd cache...\\033[0m\n"
+      '/usr/sbin/sss_cache' -E
+      echo ''
+    else
+      printf "\\033[38;5;160mThe attempt to install sssd-common has failed.\\033[0m\n"
+      printf "\\033[38;5;160mYou may wish to verify that this system is registered to the satellite server correctly.\\033[0m\n"
+      echo ''
+      printf "\\033[38;5;46mContinuing anyway because this step is not vital...\\033[0m\n"
+    fi
+  elif [ -x "/usr/bin/zypper" ]; then
+    printf "\\033[38;5;46mThis script is not meant to run on SuSE servers.  Please locate the older version of rejoin-corp\\033[0m\n"
+    echo ''
+    exit 1
+  fi
+fi
+
+echo ''
+printf "\\033[38;5;46mGetting a Kerberos ticket for \\033[38;5;190m$(hostname)\\033[38;5;46m...\\033[0m\n"
+'/usr/bin/kinit' -R "$(echo $(hostname -s) | tr '[:lower:]' '[:upper:]')$" -k -t '/etc/krb5.keytab'
+RET="$?"
+
+if [ "${RET}" -eq  '0' ]; then
+  printf "\\033[38;5;46mSuccessfully acquired a Kerberos ticket for \\033[38;5;190m$(hostname)\\033[0m\n"
+  printf "\\033[38;5;46mThis is the ticket that was acquired:\\033[0m\n"
+  echo ''
+  '/usr/bin/klist'
+else
+  printf "\\033[38;5;160mWas unable to acquire a Kerberos ticket for \\033[38;5;190m$(hostname)\\033[0m\n"
+  echo ''
+  printf "\\033[38;5;46mContinuing anyway because this step is not vital.\\033[0m\n"
+  echo ''
+fi
+
+printf "\\033[38;5;46mAttempting a restart of the sssd service...\\033[0m\n"
+echo ''
+'/usr/bin/systemctl' restart sssd
+RET="$?"
+
+if [ "${RET}" -eq '0' ]; then
+  printf "\\033[38;5;46mThe sssd service was restarted successfully.\\033[0m\n"
+  echo ''
+  printf "\\033[38;5;46mThis is the status of the sssd service:\\033[0m\n"
+  printf "\\033[38;5;46m---------------------------------------\\033[0m\n"
+  echo ''
+  '/usr/bin/systemctl' status sssd.service
+  echo ''
+else
+  function DISPLAY_ERROR() {
+    echo ''
+    printf "\\033[38;5;160mERROR:  The resart of the sssd service has failed.\\033[0m\n"
+    echo ''
+    printf "\\033[38;5;160mThis is the status of the sssd service:\\033[0m\n"
+    printf "\\033[38;5;160m---------------------------------------\\033[0m\n"
+    echo ''
+    '/usr/bin/systemctl' status sssd.service
+    echo ''
+    echo ''
+    printf "\\033[38;5;160mThese are the latest journal entries associated with the sssd.service:\\033[0m\n"
+    printf "\\033[38;5;160m----------------------------------------------------------------------\\033[0m\n"
+    echo ''
+    echo "$('/usr/bin/journalctl' -u sssd)" | tail -n 100
+    echo ''
+  }
+  GIVE_HELP
+  exit 1
+fi
+
+printf "\\033[38;5;46mThe process of rejoining \\033[38;5;190m$(hostname)\\033[38;5;46m to the corp.wan domain\\033[0m\n"
+printf "\\033[38;5;46mappears to have been successful.\\033[0m\n"
+echo ''
+printf "\\033[38;5;46mPlease verify that authentication against AD is working correctly.\\033[0m\n"
+echo ''
+printf "\\033[38;5;46mThe list below contains some examples of ways that you can do the\\033[0m\n"
+printf "\\033[38;5;46mauthentication verification.\\033[0m\n"
+echo ''
+printf "\\033[38;5;46mTry logging into \\033[38;5;190m$(hostname)\\033[38;5;46m as yourself\\033[0m\n"
+printf "\\033[38;5;46mUse sudo to run a command as yourself to see if your password will be accepted.\\033[0m\n"
+echo ''
+printf "\\033[38;5;166mCommands you can run:\\033[0m\n"
+printf "\\033[38;5;51mgetent passwd <username>\\033[0m\n"
+printf "\\033[38;5;51mgetent group <groupname>\\033[0m\n"
+printf "\\033[38;5;51mid <username>\\033[0m\n"
+printf "\\033[38;5;51msudo -U <username> -l\\033[0m\n"
+echo ''
+echo ''
+exit 0
+

@@ -1,0 +1,2 @@
+[all]
+sl-testserv1t ansible_host=10.180.112.54

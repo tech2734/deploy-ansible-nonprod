@@ -1,0 +1,17 @@
+---
+
+# Create an ISO
+
+  - name: ---- IMPORT ----
+    import_playbook: "{{ DeployDir }}/createiso.yml"
+    delegate_to: localhost
+    register: testing
+    connection: local
+    ignore_errors: true
+  
+  - name: message
+    debug:
+      msg: message
+    failed_when: testing is failed
+    
+...

@@ -1,0 +1,17 @@
+---
+
+# Put vsftpd configuration into place using templates
+
+  - name: upload /etc/vsftpd/vsftpd.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/vsftpd_conf/templates/vsftpd.conf.j2"
+      dest: /etc/vsftpd/vsftpd.conf
+      owner: root
+      group: root
+      mode: '0600'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0

@@ -1,0 +1,7 @@
+---
+
+- name: restart-node_export
+  systemd:
+    name: node_exporter
+    state: restarted
+    enabled: yes

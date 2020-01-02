@@ -1,0 +1,13 @@
+[Unit]
+Description=Makes some firstboot modifications
+ConditionPathExists=/usr/local/bin/sl-websvc2t-firstboot
+
+After=network.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /usr/local/bin/sl-websvc2t-firstboot start
+
+[Install]
+WantedBy=multi-user.target
+

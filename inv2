@@ -1,0 +1,11 @@
+[nodes]
+sl-testserv2t ansible_host=10.180.112.89
+sl-testserv3t ansible_host=10.180.112.91
+sl-testserv4t ansible_host=10.180.112.92
+sl-testserv5t ansible_host=10.180.112.94
+
+[nodes:vars]
+Group=Billing
+NumCPU=4
+Memory=8192
+Annotation="This is a test billing server"

@@ -1,0 +1,77 @@
+---
+
+# Put /etc/autofs.conf in place from template
+  - name: upload autofs.conf from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/autofs_conf/templates/autofs_conf.j2"
+      dest: /etc/autofs.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+# Put /etc/auto.home file in place from template
+  - name: upload /etc/auto.home from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/autofs_conf/templates/autohome_conf.j2"
+      dest: /etc/auto.home
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_runtime_t
+      selevel: s0
+
+# Put /etc/auto.master file in place from template
+  - name: upload auto.master from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/autofs_conf/templates/automaster_conf.j2"
+      dest: /etc/auto.master
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+# Put /etc/auto.direct file in place from template
+  - name: upload /etc/auto.direct from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/autofs_conf/templates/autodirect_conf.j2"
+      dest: /etc/auto.direct
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_runtime_t
+      selevel: s0
+
+# Put /etc/sysconfig/autofs file in place from template
+  - name: upload /etc/sysconfig/autofs from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/autofs_conf/templates/sysautofs_conf.j2"
+      dest: /etc/sysconfig/autofs
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+

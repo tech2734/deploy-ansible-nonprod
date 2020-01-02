@@ -1,0 +1,39 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/oddjobd.conf.d/oddjobd-introspection.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/oddjobd_conf/templates/oddjobd-introspection.conf.j2"
+      dest: /etc/oddjobd.conf.d/oddjobd-introspection.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+    register: oi_modified
+
+  - name: upload /etc/oddjobd.conf.d/oddjobd-mkhomedir.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/oddjobd_conf/templates/oddjobd-mkhomedir.conf.j2"
+      dest: /etc/oddjobd.conf.d/oddjobd-mkhomedir.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+    register: om_modified
+
+  - name: restart the oddjobd service when config files for oddjobd were changed
+    systemd:
+      state: restarted
+      name: oddjobd
+    when: ( oi_modified is changed ) or ( om_modified is changed )

@@ -1,0 +1,67 @@
+---
+
+# Install node_exporter
+
+  - name: create directory for node_exporter
+    file:
+      path: /opt/prometheus/exporters/node_exporter/bin
+      state: directory
+      owner: root
+      group: root
+      mode: '0755'
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: create a directory for node_exporters text file collector
+    file:
+      path: /var/lib/node_exporter/textfile_collector
+      state: directory
+      owner: root
+      group: root
+      mode: '0755'
+      seuser: system_u
+      serole: object_r
+      setype: var_lib_t
+      selevel: s0
+
+  - name: copy the latest node_exporter binary to the endpoints
+    copy:
+      src: "{{ RoleDir }}/verify_configs/roles/node-exporter-install/files/node_exporter"
+      dest: /opt/prometheus/exporters/node_exporter/bin/node_exporter
+      force: yes
+      owner: root
+      group: root
+      mode: '0755'
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: make sure a system alternative is set for node_exporter
+    alternatives:
+      name: node_exporter
+      link: /sbin/node_exporter
+      path: /opt/prometheus/exporters/node_exporter/bin/node_exporter
+      priority: 1
+
+  - name: install unit file to systemd
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/node-exporter-install/templates/node_exporter.service"
+      dest: /usr/lib/systemd/system/node_exporter.service
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: no
+      seuser: system_u
+      serole: object_r
+      setype: systemd_unit_file_t
+      selevel: s0
+    register: node_exp_svc_modified
+
+  - name: reload systemd if the node_exporter service was modified
+    systemd:
+      daemon_reload: yes
+    when: node_exp_svc_modified is changed

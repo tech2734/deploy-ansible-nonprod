@@ -1,0 +1,13 @@
+---
+NumCPU: 2
+Memory: 4096
+Environment: Test
+Group: Linux
+Annotation: Linux VM
+DataCenter: SOC
+Cluster: CS_Unix_Cluster1
+ResourcePool: Test_Server_Pool
+HWVersion: 14
+DataStore: CS-UNIX-CLUSTER1-DS01
+Network: SL-180.112-1112T
+...

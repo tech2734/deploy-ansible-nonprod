@@ -1,0 +1,32 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/dconf/db/distro.d/locks/10-authconfig-locks into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/dconf_conf/templates/10-authconfig-locks.j2"
+      dest: /etc/dconf/db/distro.d/locks/10-authconfig-locks
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: unconfined_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/dconf/db/distro.d/10-authconfig into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/dconf_conf/templates/10-authconfig.j2"
+      dest: /etc/dconf/db/distro.d/10-authconfig
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: unconfined_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+

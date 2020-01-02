@@ -1,0 +1,22 @@
+---
+
+# Put a puppet.conf in place from template
+
+  - name: ---- MAKE SURE PUPPET IS INSTALLED ----
+    yum:
+      name: puppet-agent
+      state: present
+
+  - name: ---- UPLOAD PUPPET.CONF FROM TEMPLATE ----
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/puppet_conf/templates/puppet_conf.j2"
+      dest: /etc/puppetlabs/puppet/puppet.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: puppet_etc_t
+      selevel: s0

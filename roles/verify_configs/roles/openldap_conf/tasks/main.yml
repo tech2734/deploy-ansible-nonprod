@@ -1,0 +1,18 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/openldap/ldap.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/openldap_conf/templates/ldap.conf.j2"
+      dest: /etc/openldap/ldap.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+

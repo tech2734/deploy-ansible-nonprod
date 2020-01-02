@@ -1,0 +1,17 @@
+---
+
+# Put /etc/samba/smb.conf in place from template
+
+  - name: upload /etc/samba/smb.conf from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/smb_conf/templates/smb_conf.j2"
+      dest: /etc/samba/smb.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: samba_etc_t
+      selevel: s0

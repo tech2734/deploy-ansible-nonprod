@@ -1,0 +1,38 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /usr/share/plymouth/plymouthd.defaults into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/plymouth_conf/templates/plymouthd.defaults.j2"
+      dest: /usr/share/plymouth/plymouthd.defaults
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: usr_t
+      selevel: s0
+
+  - name: upload /etc/plymouth/plymouthd.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/plymouth_conf/templates/plymouthd.defaults.j2"
+      dest: /etc/plymouth/plymouthd.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+    register: plymouthd_modified
+
+  - name: activate the cspire plymouth theme
+    shell: |
+      /sbin/plymouth-set-default-theme -R cspire
+    when: plymouthd_modified is changed
+

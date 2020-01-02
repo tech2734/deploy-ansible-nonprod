@@ -1,0 +1,117 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/sysconfig/ip6tables into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/etc_sysconfig_conf/templates/ip6tables.j2"
+      dest: /etc/sysconfig/ip6tables
+      owner: root
+      group: root
+      mode: '0600'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: system_conf_t
+      selevel: s0
+
+  - name: upload /etc/sysconfig/ip6tables-config into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/etc_sysconfig_conf/templates/ip6tables-config.j2"
+      dest: /etc/sysconfig/ip6tables-config
+      owner: root
+      group: root
+      mode: '0600'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: system_conf_t
+      selevel: s0
+
+  - name: upload /etc/sysconfig/iptables-config into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/etc_sysconfig_conf/templates/iptables-config.j2"
+      dest: /etc/sysconfig/iptables-config
+      owner: root
+      group: root
+      mode: '0600'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: system_conf_t
+      selevel: s0
+
+  - name: upload /etc/sysconfig/kdump into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/etc_sysconfig_conf/templates/kdump.j2"
+      dest: /etc/sysconfig/kdump
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/sysconfig/network into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/etc_sysconfig_conf/templates/network.j2"
+      dest: /etc/sysconfig/network
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/sysconfig/nfs into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/etc_sysconfig_conf/templates/nfs.j2"
+      dest: /etc/sysconfig/nfs
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/sysconfig/node_exporter into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/etc_sysconfig_conf/templates/node_exporter.j2"
+      dest: /etc/sysconfig/node_exporter
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/sysconfig/ntpd into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/etc_sysconfig_conf/templates/ntpd.j2"
+      dest: /etc/sysconfig/ntpd
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+...

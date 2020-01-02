@@ -1,0 +1,6 @@
+#!/bin/sh
+
+/bin/openssl dhparam -out /etc/pki/tls/private/postfix.dh.param.tmp 2048 >/dev/null 2>&1
+/bin/cat /etc/pki/tls/private/postfix.dh.param.tmp > /etc/pki/tls/private/postfix.dh.param
+/bin/rm -f /etc/pki/tls/private/postfix.dh.param.tmp
+

@@ -1,0 +1,60 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/modprobe.d/tuned.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/modprobe_conf/templates/tuned.conf.j2"
+      dest: /etc/modprobe.d/tuned.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: modules_conf_t
+      selevel: s0
+
+  - name: upload /etc/modprobe.d/firewalld-sysctls.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/modprobe_conf/templates/firewalld-sysctls.conf.j2"
+      dest: /etc/modprobe.d/firewalld-sysctls.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: modules_conf_t
+      selevel: s0
+
+  - name: upload /etc/modprobe.d/dccp-blacklist.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/modprobe_conf/templates/dccp-blacklist.conf.j2"
+      dest: /etc/modprobe.d/dccp-blacklist.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: modules_conf_t
+      selevel: s0
+
+  - name: upload /etc/modprobe.d/lockd.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/modprobe_conf/templates/lockd.conf.j2"
+      dest: /etc/modprobe.d/lockd.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: modules_conf_t
+      selevel: s0
+

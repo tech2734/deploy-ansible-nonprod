@@ -1,0 +1,16 @@
+# /usr/lib/systemd/system/insights-client.service
+
+[Unit]
+Description=Insights Client
+Documentation=man:insights-client(8)
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/insights-client --retry 3
+Restart=no
+WatchdogSec=600
+CPUQuota=30%
+MemoryLimit=2G
+TasksMax=20
+BlockIOWeight=100

@@ -1,0 +1,31 @@
+---
+
+# Put issue configs in place from templates
+
+  - name: upload issue from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/issue_conf/templates/issue.j2"
+      dest: /etc/issue
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload issue.net from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/issue_conf/templates/issue_net.j2"
+      dest: /etc/issue.net
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0

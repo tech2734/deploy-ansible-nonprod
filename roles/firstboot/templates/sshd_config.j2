@@ -1,0 +1,57 @@
+# If you need assistance in configuring this file, run:  'man 5 sshd_config'
+#    This will provide a description for all possible options.
+#    It will also show the default values that are set for each option.
+
+Port 22
+AddressFamily inet
+AllowAgentForwarding yes
+AllowTcpForwarding yes
+AuthorizedKeysFile .ssh/authorized_keys
+Banner /etc/ssh/sshd_banner
+ChallengeResponseAuthentication yes
+ChrootDirectory none
+ClientAliveCountMax 3
+ClientAliveInterval 0
+Compression delayed
+GatewayPorts no
+GSSAPIAuthentication yes
+GSSAPICleanupCredentials yes
+GSSAPIKeyExchange yes
+GSSAPIStrictAcceptorCheck yes
+HostbasedAuthentication no
+HostKey /etc/ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_rsa_key
+IgnoreRhosts yes
+IgnoreUserKnownHosts no
+KerberosAuthentication yes
+KerberosOrLocalPasswd yes
+KerberosTicketCleanup yes
+ListenAddress {{ ansible_host }}
+LoginGraceTime 2m
+LogLevel INFO
+MaxAuthTries 6
+MaxSessions 20
+MaxStartups 10:30:100
+PasswordAuthentication yes
+PermitEmptyPasswords no
+PermitRootLogin yes
+PermitTTY yes
+PermitTunnel no
+PermitUserEnvironment no
+PidFile /run/sshd.pid
+PrintLastLog no
+PrintMotd no
+Protocol 2
+PubkeyAuthentication yes
+RekeyLimit default none
+StrictModes yes
+Subsystem sftp /usr/libexec/openssh/sftp-server
+SyslogFacility AUTH
+TCPKeepAlive yes
+UseDNS no
+UsePAM yes
+UsePrivilegeSeparation sandbox
+X11DisplayOffset 10
+X11Forwarding yes
+X11UseLocalhost yes

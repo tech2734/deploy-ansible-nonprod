@@ -1,0 +1,326 @@
+---
+
+# Put /etc/profile.d scripts into place from templates
+
+  - name: upload 256term.csh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/256term.csh.j2"
+      dest: /etc/profile.d/256term.csh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload 256term.sh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/256term.sh.j2"
+      dest: /etc/profile.d/256term.sh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload abrt-console-notification.sh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/abrt-console-notification.sh.j2"
+      dest: /etc/profile.d/abrt-console-notification.sh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload alias.sh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/alias.sh.j2"
+      dest: /etc/profile.d/alias.sh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload bash_completion.sh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/bash_completion.sh.j2"
+      dest: /etc/profile.d/bash_completion.sh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload colorgrep.csh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/colorgrep.csh.j2"
+      dest: /etc/profile.d/colorgrep.csh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload colorgrep.sh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/colorgrep.sh.j2"
+      dest: /etc/profile.d/colorgrep.sh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload colorls.csh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/colorls.csh.j2"
+      dest: /etc/profile.d/colorls.csh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload colorls.sh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/colorls.sh.j2"
+      dest: /etc/profile.d/colorls.sh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload csh.local from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/csh.local.j2"
+      dest: /etc/profile.d/csh.local
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload lang.csh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/lang.csh.j2"
+      dest: /etc/profile.d/lang.csh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload lang.sh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/lang.sh.j2"
+      dest: /etc/profile.d/lang.sh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload less.csh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/less.csh.j2"
+      dest: /etc/profile.d/less.csh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload less.sh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/less.sh.j2"
+      dest: /etc/profile.d/less.sh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload lscolor.sh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/lscolor.sh.j2"
+      dest: /etc/profile.d/lscolor.sh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload ps1.sh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/ps1.sh.j2"
+      dest: /etc/profile.d/ps1.sh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload puppet-agent.csh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/puppet-agent.csh.j2"
+      dest: /etc/profile.d/puppet-agent.csh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload puppet-agent.sh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/puppet-agent.sh.j2"
+      dest: /etc/profile.d/puppet-agent.sh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload sh.local from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/sh.local.j2"
+      dest: /etc/profile.d/sh.local
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload vim.csh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/vim.csh.j2"
+      dest: /etc/profile.d/vim.csh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload vim.sh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/vim.sh.j2"
+      dest: /etc/profile.d/vim.sh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload which2.csh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/which2.csh.j2"
+      dest: /etc/profile.d/which2.csh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: upload which2.sh from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/profile.d_conf/templates/which2.sh.j2"
+      dest: /etc/profile.d/which2.sh
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+

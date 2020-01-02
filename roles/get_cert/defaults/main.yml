@@ -1,0 +1,5 @@
+---
+CertDir: /var/www/html/pub/certs
+EnrollPass: E9CB7A36E05B10CD24E923CFDD275453
+SCEPServer: jw-winscep2p
+...

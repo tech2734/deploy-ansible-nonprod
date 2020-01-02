@@ -1,0 +1,18 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/audit/auditd.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/audit_conf/templates/auditd.conf.j2"
+      dest: /etc/audit/auditd.conf
+      owner: root
+      group: root
+      mode: '0640'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: auditd_etc_t
+      selevel: s0
+

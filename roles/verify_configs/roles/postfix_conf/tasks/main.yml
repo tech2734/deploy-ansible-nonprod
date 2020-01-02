@@ -1,0 +1,96 @@
+---
+
+# Put configuration into place using templates
+
+  - name: make sure /etc/pki/tls/private/postfix.pem exists
+    shell: |
+      if [ ! -f "/etc/pki/tls/private/postfix.pem" ]; then
+        if [ -f "/etc/ssl/private/{{ inventory_hostname }}.pem" ]; then
+          cp -a "/etc/ssl/private/{{ inventory_hostname }}.pem" "/etc/pki/tls/private/postfix.pem"
+        fi
+      fi
+
+  - name: make sure /etc/pki/tls/private/postfix.key exists
+    shell: |
+      if [ ! -f "/etc/pki/tls/private/postfix.key" ]; then
+        if [ -f "/etc/ssl/private/{{ inventory_hostname }}.key" ]; then
+          cp -a "/etc/ssl/private/{{ inventory_hostname }}.key" "/etc/pki/tls/private/postfix.key"
+        fi
+      fi
+
+  - name: make sure /etc/pki/tls/private/postfix.key has the correct permissions and context
+    file:
+      path: /etc/pki/tls/private/postfix.key
+      owner: root
+      group: root
+      mode: '0640'
+      seuser: system_u
+      serole: object_r
+      setype: cert_t
+      selevel: s0
+
+  - name: make sure /etc/pki/tls/private/postfix.pem has the correct permissions and context
+    file:
+      path: /etc/pki/tls/private/postfix.pem
+      owner: root
+      group: root
+      mode: '0644'
+      seuser: system_u
+      serole: object_r
+      setype: cert_t
+      selevel: s0
+
+  - name: make sure the file /etc/pki/tls/private/postfix.dh.param exists
+    shell: |
+      if [ ! -f "/etc/pki/tls/private/postfix.dh.param" ]; then
+        openssl dhparam -out "/etc/pki/tls/private/postfix.dh.param.tmp" 2048
+        mv "/etc/pki/tls/private/postfix.dh.param.tmp" "/etc/pki/tls/private/postfix.dh.param"
+        chmod 0644 "/etc/pki/tls/private/postfix.dh.param"
+      fi
+    changed_when: False    
+
+  - name: make sure /etc/pki/tls/private/postfix.dh.param has the correct permissions and context
+    file:
+      path: /etc/pki/tls/private/postfix.dh.param
+      owner: root
+      group: root
+      mode: '0644'
+      seuser: system_u
+      serole: object_r
+      setype: cert_t
+      selevel: s0
+
+  - name: upload /etc/postfix/main.cf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/postfix_conf/templates/main.cf.j2"
+      dest: /etc/postfix/main.cf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: postfix_etc_t
+      selevel: s0
+    register: postfix_config_modified
+
+  - name: upload /etc/cron.weekly/renew-postfix-dhparams into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/postfix_conf/templates/renew-postfix-dhparams.j2"
+      dest: /etc/cron.weekly/renew-postfix-dhparams
+      owner: root
+      group: root
+      mode: '0700'
+      force: yes
+      backup: no
+      seuser: system_u
+      serole: object_r
+      setype: bin_t
+      selevel: s0
+
+  - name: restart the postfix service if the configuration for postfix was modified
+    systemd:
+      state: restarted
+      name: postfix
+    when: postfix_config_modified is changed

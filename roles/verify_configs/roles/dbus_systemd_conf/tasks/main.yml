@@ -1,0 +1,33 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/dbus-1/system.d/com.redhat.RHSM1.Facts.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/dbus_systemd_conf/templates/com.redhat.RHSM1.Facts.conf.j2"
+      dest: /etc/dbus-1/system.d/com.redhat.RHSM1.Facts.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: dbusd_etc_t
+      selevel: s0
+
+  - name: upload /etc/dbus-1/system.d/org.selinux.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/dbus_systemd_conf/templates/org.selinux.conf.j2"
+      dest: /etc/dbus-1/system.d/org.selinux.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: dbusd_etc_t
+      selevel: s0
+
+...

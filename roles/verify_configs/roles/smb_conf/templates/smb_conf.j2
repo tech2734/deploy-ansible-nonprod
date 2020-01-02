@@ -1,0 +1,12 @@
+[global]
+    security = ads
+    realm = CORP.WAN
+    workgroup = CORP
+    log file = /var/log/samba/%m.log
+    kerberos method = secrets and keytab
+    client signing = yes
+    client use spnego = yes
+    password server = 10.180.4.90 10.16.129.91 10.16.229.90 10.16.129.90
+    template shell = /bin/false
+    winbind use default domain = false
+    winbind offline logon = false

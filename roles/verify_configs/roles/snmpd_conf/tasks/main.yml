@@ -1,0 +1,20 @@
+---
+
+# Put snmpd.conf in place from template - made by JB
+
+  - name: upload snmpd.conf from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/snmpd_conf/templates/snmpd-{{ ansible_os_family }}-{{ ansible_distribution_major_version }}.conf.j2"
+      dest: /etc/snmp/snmpd.conf
+      owner: root
+      group: root
+      mode: '0600'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+    notify: restart-snmpd
+
+...

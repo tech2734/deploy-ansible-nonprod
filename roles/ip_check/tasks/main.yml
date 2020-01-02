@@ -1,0 +1,15 @@
+---
+
+# Check if IP address is already in use
+
+  - name: ---- CHECK IP ADDRESS MESSAGE ----
+    debug:
+      msg: Checking if IP address {{ ansible_host }} is already in use.  If this step fails then the playbook cannot succeed.
+
+  - name: ---- CHECK IP ADDRESS ----
+    shell: ping {{ ansible_host }} -c 1 && echo -n IP-IN-USE
+    register: IPCheck
+    failed_when: "'IP-IN-USE' in IPCheck.stdout"
+    delegate_to: sl-udeploy1t
+
+...

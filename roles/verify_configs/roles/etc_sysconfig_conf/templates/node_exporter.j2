@@ -1,0 +1,28 @@
+# /etc/sysconfig/node_exporter  -  This file passes init options to node_exporter
+
+OPTIONS=--no-collector.arp \
+--no-collector.bcache \
+--no-collector.bonding \
+--no-collector.conntrack \
+--no-collector.entropy \
+--no-collector.infiniband \
+--no-collector.hwmon \
+--no-collector.ipvs \
+--no-collector.mdadm \
+--no-collector.nfsd \
+--no-collector.sockstat \
+--no-collector.xfs \
+--no-collector.zfs \
+--no-collector.edac \
+--no-collector.textfile \
+--collector.netclass.ignored-devices="^(lo|loopback.*)$" \
+--collector.netdev.ignored-devices="^(lo|loopback.*)$" \
+--collector.diskstats.ignored-devices="^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$" \
+--collector.filesystem.ignored-fs-types="^(autofs|binfmt_misc|cgroup|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|iso9660|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|sysfs|tracefs|tmpfs|usbfs)$" \
+--collector.vmstat.fields="^(oom_kill|pgpg|pswp|pg.*fault).*" \
+--collector.filesystem.ignored-mount-points="^/(dev|proc|sys|var/lib/docker.+|//|nfs/homes.*|net/prodcd/cds1.*)($|/)" \
+--collector.netstat.fields="^(.*_(InErrors|InErrs)|Icmp_(InMsgs|OutMsgs)|Tcp_(ActiveOpens|InSegs|OutSegs|PassiveOpens|RetransSegs|CurrEstab)|Udp_(InDatagrams|OutDatagrams|NoPorts))$" \
+--path.procfs="/proc" \
+--path.sysfs="/sys" \
+--web.listen-address=":9100" \
+--web.telemetry-path="/metrics" \

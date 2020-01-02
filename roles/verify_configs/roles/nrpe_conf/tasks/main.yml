@@ -1,0 +1,24 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /usr/local/nagios/etc/nrpe.cfg into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/nrpe_conf/templates/nrpe.cfg.j2"
+      dest: /usr/local/nagios/etc/nrpe.cfg
+      owner: nagios
+      group: nagios
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: usr_t
+      selevel: s0
+    register: nrpe_config_modified
+
+  - name: restart the nrpe service if the configuration for nrpe was modified
+    systemd:
+      state: restarted
+      name: nrpe
+    when: nrpe_config_modified is changed

@@ -1,0 +1,130 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/yum/pluginconf.d/product-id.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/yum_plugins_conf/templates/product-id.conf.j2"
+      dest: /etc/yum/pluginconf.d/product-id.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/yum/pluginconf.d/search-disabled-repos.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/yum_plugins_conf/templates/search-disabled-repos.conf.j2"
+      dest: /etc/yum/pluginconf.d/search-disabled-repos.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/yum/pluginconf.d/subscription-manager.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/yum_plugins_conf/templates/subscription-manager.conf.j2"
+      dest: /etc/yum/pluginconf.d/subscription-manager.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/yum/pluginconf.d/versionlock.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/yum_plugins_conf/templates/versionlock.conf.j2"
+      dest: /etc/yum/pluginconf.d/versionlock.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/yum/pluginconf.d/versionlock.list into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/yum_plugins_conf/templates/versionlock.list.j2"
+      dest: /etc/yum/pluginconf.d/versionlock.list
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/yum/pluginconf.d/verify.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/yum_plugins_conf/templates/verify.conf.j2"
+      dest: /etc/yum/pluginconf.d/verify.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/yum/pluginconf.d/langpacks.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/yum_plugins_conf/templates/langpacks.conf.j2"
+      dest: /etc/yum/pluginconf.d/langpacks.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/yum/pluginconf.d/enabled_repos_upload.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/yum_plugins_conf/templates/enabled_repos_upload.conf.j2"
+      dest: /etc/yum/pluginconf.d/enabled_repos_upload.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/yum/pluginconf.d/package_upload.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/yum_plugins_conf/templates/package_upload.conf.j2"
+      dest: /etc/yum/pluginconf.d/package_upload.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+

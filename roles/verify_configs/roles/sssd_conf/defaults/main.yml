@@ -1,0 +1,4 @@
+---
+sssd_access_filter: 'ad_access_filter = DOM:corp.wan:(&(objectClass=user)(|(memberOf:1.2.840.113556.1.4.1941:=CN=Linux-Admins-Nonprod,OU=groups,DC=corp,DC=wan)(sAMAccountName=svc-nexposeunix)))'
+
+...

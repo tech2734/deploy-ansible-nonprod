@@ -1,0 +1,47 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/security/limits.d/21-nofile.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/etc_security_conf/templates/21-nofile.conf.j2"
+      dest: /etc/security/limits.d/21-nofile.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: unconfined_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/security/limits.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/etc_security_conf/templates/limits.conf.j2"
+      dest: /etc/security/limits.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/security/namespace.init into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/etc_security_conf/templates/namespace.init.j2"
+      dest: /etc/security/namespace.init
+      owner: root
+      group: root
+      mode: '0755'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: namespace_init_exec_t
+      selevel: s0
+
+...

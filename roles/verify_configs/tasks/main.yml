@@ -1,0 +1,9 @@
+---
+## This role will verify typical configs on Red Hat systems
+
+
+  - name: ---- VERIFY STANDARD CONFIGURATIONS ----
+    debug:
+      msg: VERIFYING CONFIGS ...
+
+...

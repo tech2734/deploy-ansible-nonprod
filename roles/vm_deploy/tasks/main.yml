@@ -1,0 +1,47 @@
+---
+
+# Deploy Virtual Machine
+
+    - name: ---- DEPLOY VM ----
+      vmware_guest:
+        hostname: sx-vc1p.corp.wan
+        username: svc-vmwaredeploy
+        password: xY9Y7HpHbHI8LKfeeKXc
+        name: "{{ inventory_hostname }}"
+        state: poweredon
+        annotation: "{{ Annotation }}:"
+        guest_id: rhel7_64Guest
+        folder: Linux/{{ Environment }}/{{ Group }}
+        datacenter: "{{ DataCenter }}"
+        cluster: "{{ Cluster }}"
+        resource_pool: "{{ ResourcePool }}"
+        validate_certs: False
+        hardware:
+          memory_mb: "{{ Memory }}"
+          num_cpus: "{{ NumCPU }}"
+          num_cpu_cores_per_socket: 1
+          scsi: paravirtual
+          hotadd_cpu: True
+          hotadd_memory: True
+          version: "{{ HWVersion }}"
+        cdrom:
+          type: iso
+          iso_path: "[UNIX-VM-IMAGES] linuxisos/{{ inventory_hostname }}.iso"
+        networks:
+        - name: "{{ Network }}"
+          device-type: vmxnet3
+          type: static
+          ip: "{{ ansible_host }}"
+          netmask: 255.255.255.0
+          gateway:
+          dns_servers:
+          - "{{ DNS1 }}"
+          - "{{ DNS2 }}"
+        wait_for_ip_address: no
+        disk:
+        - size_gb: 40
+          type: eagerzeroedthick
+          datastore: "{{ DataStore }}"
+      delegate_to: localhost
+
+...

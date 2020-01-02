@@ -1,0 +1,60 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/prelink.conf.d/nss-softokn-prelink.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/prelink_conf/templates/nss-softokn-prelink.conf.j2"
+      dest: /etc/prelink.conf.d/nss-softokn-prelink.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/prelink.conf.d/fipscheck.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/prelink_conf/templates/fipscheck.conf.j2"
+      dest: /etc/prelink.conf.d/fipscheck.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/prelink.conf.d/grub2.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/prelink_conf/templates/grub2.conf.j2"
+      dest: /etc/prelink.conf.d/grub2.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/prelink.conf.d/libreswan-fips.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/prelink_conf/templates/libreswan-fips.conf.j2"
+      dest: /etc/prelink.conf.d/libreswan-fips.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+

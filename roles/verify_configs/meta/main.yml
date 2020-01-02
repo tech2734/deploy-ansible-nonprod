@@ -1,0 +1,46 @@
+---
+## This playbook will verify typical configs on Red Hat systems
+
+allow_duplicates: yes
+dependencies:
+  - { role: "{{ RoleDir }}/verify_configs/roles/cspire_repo_conf", tags: [ 'cspire_repo_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/sudoers_conf", tags: [ 'sudoers_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/chrony_conf", tags: [ 'chrony_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/rsyslog_conf", tags: [ 'rsyslog_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/puppet_conf", tags: [ 'puppet_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/snmpd_conf", tags: [ 'snmpd_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/authconfig_conf", tags: [ 'authconfig_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/abrt_conf", tags: [ 'abrt_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/aide_conf", tags: [ 'aide_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/autofs_conf", tags: [ 'autofs_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/kdump_conf", tags: [ 'kdump_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/rhsm_conf", tags: [ 'rhsm_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/useradd_conf", tags: [ 'useradd_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/smb_conf", tags: [ 'smb_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/insights_conf", tags: [ 'insights_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/host_conf", tags: [ 'host_conf' ] }
+#  - { role: "{{ RoleDir }}/verify_configs/roles/ssh_conf", tags: [ 'ssh_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/audit_conf", tags: [ 'audit_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/gmond_conf", tags: [ 'gmond_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/hostname_conf", tags: [ 'hostname_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/postfix_conf", tags: [ 'postfix_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/nrpe_conf", tags: [ 'nrpe_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/nsswitch_conf", tags: [ 'nsswitch_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/plymouth_conf", tags: [ 'plymouth_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/logrotate_conf", tags: [ 'logrotate_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/profile_scripts_conf", tags: [ 'profile_scripts_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/etc_security_conf", tags: [ 'etc_security_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/dbus_systemd_conf", tags: [ 'dbus_systemd_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/request_key_conf", tags: [ 'request_key_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/dconf_conf", tags: [ 'dconf_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/sssd_conf", tags: [ 'sssd_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/krb5_conf", tags: [ 'krb5_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/login.defs_conf", tags: [ 'login.defs_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/lvm_conf", tags: [ 'lvm_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/vsftpd_conf", tags: [ 'vsftpd_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/node-exporter-install", tags: [ 'node-exporter-install' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/node_exporter_conf", tags: [ 'node_exporter_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/etc_sysconfig_conf", tags: [ 'etc_sysconfig_conf' ] }
+  - { role: "{{ RoleDir }}/verify_configs/roles/pam_conf", tags: [ 'pam_conf' ] }
+
+#vars_files: /usr/local/ansible/deploy/vars

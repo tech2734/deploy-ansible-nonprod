@@ -1,0 +1,23 @@
+---
+
+  - name: ---- START CLEANUP PROCESS ----
+    debug:
+      msg: Starting cleanup...
+
+  - name: ---- REMOVE IP ----
+    lineinfile:
+      path: |-
+            {%- if inventory_hostname | regex_search('d$') -%}
+            /var/www/html/pub/subnets/D-subnet-file
+            {%- elif inventory_hostname | regex_search('s$') -%}
+            /var/www/html/pub/subnets/S-subnet-file
+            {%- elif inventory_hostname | regex_search('i$') -%}
+            /var/www/html/pub/subnets/I-subnet-file
+            {%- elif inventory_hostname | regex_search('t$') -%}
+            /var/www/html/pub/subnets/T-subnet-file
+            {%- elif inventory_hostname | regex_search('p$') -%}
+            /var/www/html/pub/subnets/P-subnet-file
+            {%- endif -%}
+      regexp: "^{{ ansible_host }}"
+      state: absent
+    delegate_to: sl-udeploy1t

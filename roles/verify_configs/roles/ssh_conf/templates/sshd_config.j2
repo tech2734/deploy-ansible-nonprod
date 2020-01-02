@@ -1,0 +1,71 @@
+# If you need assistance in configuring this file, run:  'man 5 sshd_config'
+#    This will provide a description for all possible options.
+#    It will also show the default values that are set for each option.
+
+Port 22
+AcceptEnv LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES
+AcceptEnv LC_IDENTIFICATION LC_ALL LANGUAGE
+AcceptEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
+AcceptEnv XMODIFIERS
+AddressFamily inet
+AllowAgentForwarding yes
+AllowTcpForwarding yes
+AuthorizedKeysFile .ssh/authorized_keys
+Banner /etc/ssh/sshd_banner
+ChallengeResponseAuthentication no
+ChrootDirectory none
+ClientAliveCountMax 3
+ClientAliveInterval 0
+Compression delayed
+GSSAPIAuthentication yes
+GSSAPICleanupCredentials no
+GSSAPIEnablek5users no
+GSSAPIKeyExchange yes
+GSSAPIStrictAcceptorCheck yes
+GatewayPorts no
+HostKey /etc/ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_rsa_key
+HostbasedAuthentication no
+IgnoreRhosts yes
+IgnoreUserKnownHosts no
+KerberosAuthentication yes
+KerberosOrLocalPasswd yes
+KerberosTicketCleanup yes
+KerberosUseKuserok yes
+ListenAddress {{ ansible_facts['default_ipv4']['address'] }}
+LogLevel INFO
+LoginGraceTime 2m
+MaxAuthTries 6
+MaxSessions 20
+MaxStartups 10:30:100
+PasswordAuthentication yes
+PermitEmptyPasswords no
+PermitRootLogin yes
+PermitTTY yes
+PermitTunnel no
+PermitUserEnvironment no
+PidFile /var/run/sshd.pid
+PrintLastLog yes
+PrintMotd yes
+PubkeyAuthentication yes
+RekeyLimit default none
+ShowPatchLevel no
+StrictModes yes
+Subsystem sftp /usr/libexec/openssh/sftp-server
+SyslogFacility AUTHPRIV
+TCPKeepAlive yes
+UseDNS no
+UsePAM yes
+UsePrivilegeSeparation sandbox
+VersionAddendum none
+X11DisplayOffset 10
+X11Forwarding yes
+X11UseLocalhost yes
+
+# Settings to chroot sftp users into their home directories
+Match Group sftpusers
+    AllowTcpForwarding no
+    ChrootDirectory /sftp/%u
+    ForceCommand internal-sftp -d /Files
+    X11Forwarding no

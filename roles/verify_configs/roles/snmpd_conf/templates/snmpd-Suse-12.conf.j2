@@ -1,0 +1,13 @@
+# Managed by Ansible
+
+syslocation SOC
+syscontact Unix <unix@cspire.com>
+sysName {{ ansible_hostname }}.corp.wan
+
+createUser cspiresnmp MD5 2Zuro3V3khuIJ7KtmesH DES 5CyYn0AxOHIHzzRud3hS
+#createUser cspiresiem MD5 oNLbL8Ks9J264uDAJvQT DES 6OCWiWF0ZUsIwkwoxvro
+rouser cspiresnmp
+rouser cspiresiem
+
+extend inode /root/bin/cs-snmp iNode
+extend nfs /root/bin/cs-snmp nfsCheck

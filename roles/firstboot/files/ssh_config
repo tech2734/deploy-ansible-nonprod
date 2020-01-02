@@ -1,0 +1,39 @@
+# If you need assistance in configuring this file, run:  'man 5 ssh_config'
+#    This will provide a description for all possible options.
+#    It will also show the default values that are set for each option.
+
+Host *
+Port 22
+AddressFamily inet
+BatchMode no
+ChallengeResponseAuthentication yes
+CheckHostIP yes
+Cipher 3des
+Ciphers aes128-ctr,aes192-ctr,aes256-ctr,arcfour256,arcfour128,aes128-cbc,3des-cbc
+ConnectTimeout 5
+EscapeChar ~
+ForwardAgent no
+ForwardX11 no
+ForwardX11Trusted yes
+GSSAPIAuthentication yes
+GSSAPIDelegateCredentials no
+GSSAPIKeyExchange no
+GSSAPIRenewalForcesRekey no
+GSSAPITrustDNS no
+HostbasedAuthentication no
+IdentityFile ~/.ssh/id_ed25519
+IdentityFile ~/.ssh/id_ecdsa
+IdentityFile ~/.ssh/id_rsa
+MACs hmac-md5,hmac-sha1,umac-64@openssh.com,hmac-ripemd160
+PasswordAuthentication yes
+PermitLocalCommand no
+Protocol 2
+RekeyLimit 1G 1h
+SendEnv LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES
+SendEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
+SendEnv LC_IDENTIFICATION LC_ALL LANGUAGE
+SendEnv XMODIFIERS
+StrictHostKeyChecking no
+Tunnel no
+TunnelDevice any:any
+VisualHostKey no

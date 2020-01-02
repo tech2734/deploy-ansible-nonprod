@@ -1,0 +1,32 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/polkit-1/rules.d/50-default.rules into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/polkit_conf/templates/50-default.rules.j2"
+      dest: /etc/polkit-1/rules.d/50-default.rules
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/polkit-1/rules.d/49-polkit-pkla-compat.rules into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/polkit_conf/templates/49-polkit-pkla-compat.rules.j2"
+      dest: /etc/polkit-1/rules.d/49-polkit-pkla-compat.rules
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+

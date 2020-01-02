@@ -1,0 +1,17 @@
+---
+
+# Put kdump.conf in place from template
+
+  - name: upload kdump.conf from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/kdump_conf/templates/kdump_conf.j2"
+      dest: /etc/kdump.conf
+      owner: root
+      group: root
+      mode: '0600'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: kdump_etc_t
+      selevel: s0

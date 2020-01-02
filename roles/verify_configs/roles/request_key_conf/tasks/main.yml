@@ -1,0 +1,46 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/request-key.d/id_resolver.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/request_key_conf/templates/id_resolver.conf.j2"
+      dest: /etc/request-key.d/id_resolver.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/request-key.d/cifs.idmap.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/request_key_conf/templates/cifs.idmap.conf.j2"
+      dest: /etc/request-key.d/cifs.idmap.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+
+  - name: upload /etc/request-key.d/cifs.spnego.conf into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/request_key_conf/templates/cifs.spnego.conf.j2"
+      dest: /etc/request-key.d/cifs.spnego.conf
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: etc_t
+      selevel: s0
+

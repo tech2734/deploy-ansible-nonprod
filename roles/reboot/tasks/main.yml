@@ -1,0 +1,26 @@
+---
+
+# Reboot the system
+
+  - name: ---- REBOOT MESSAGE ----
+    debug:
+      msg: Rebooting {{ inventory_hostname }}.  Please wait...
+
+  - name: ---- REBOOT SERVER ----
+    shell: sleep 2 && /sbin/shutdown -r now "Reboot initiated by ansible"
+    async: 1
+    poll: 0
+    ignore_errors: true
+    when: "ansible_os_family == 'RedHat'"
+
+  - name: ---- WAIT FOR SERVER TO COME BACK ONLINE ----
+    local_action: wait_for
+    args:
+      host: "{{ ansible_host }}"
+      port: 22
+      state: started
+      delay: 30
+      timeout: 300
+    when: "ansible_os_family == 'RedHat'"    
+
+...

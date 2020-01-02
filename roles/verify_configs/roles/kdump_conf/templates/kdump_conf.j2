@@ -1,0 +1,13 @@
+# This file contains a series of commands to perform (in order) in the kdump
+# kernel after a kernel crash in the crash kernel(1st kernel) has happened.
+#
+# Directives in this file are only applicable to the kdump initramfs, and have
+# no effect once the root filesystem is mounted and the normal init scripts are
+# processed.
+#
+# Currently, only one dump target and path can be specified.  If the dumping to
+# the configured target fails, the default action which can be configured via
+# the "default" directive will be performed.
+
+path /var/crash
+core_collector makedumpfile -l --message-level 1 -d 31

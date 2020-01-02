@@ -1,0 +1,18 @@
+---
+
+# Put configuration into place using templates
+
+  - name: upload /etc/hostname into place from template
+    template:
+      src: "{{ RoleDir }}/verify_configs/roles/hostname_conf/templates/hostname.j2"
+      dest: /etc/hostname
+      owner: root
+      group: root
+      mode: '0644'
+      force: yes
+      backup: yes
+      seuser: system_u
+      serole: object_r
+      setype: hostname_etc_t
+      selevel: s0
+

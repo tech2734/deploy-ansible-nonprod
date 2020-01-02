@@ -1,0 +1,51 @@
+---
+
+# Environment Check
+
+  - name: ---- ENV CHECK MESSAGE ----
+    debug:
+      msg: Checking environment {{ inventory_hostname }}.  Please wait...
+
+  - name: ---- CHECK ----
+    set_fact:
+      Environment: |- 
+                   {%- if inventory_hostname | regex_search('d$') -%}
+                   Development
+                   {%- elif inventory_hostname | regex_search('s$') -%}
+                   Development
+                   {%- elif inventory_hostname | regex_search('i$') -%}
+                   Integration
+                   {%- elif inventory_hostname | regex_search('t$') -%}
+                   Test
+                   {%- endif -%}
+      Network: |-
+                   {%- if ansible_host | regex_search('^10.181.101') -%}
+                   SL-181.101-2101S
+                   {% elif ansible_host | regex_search('^10.181.102') -%}
+                   SL-181.102-2102D
+                   {%- elif ansible_host | regex_search('^10.181.103') -%}
+                   SL-181.103-2103I
+                   {%- elif ansible_host | regex_search('^10.181.104') -%}
+                   SL-181.104-2104I
+                   {%- elif ansible_host | regex_search('^10.180.111') -%}
+                   SL-180.111-1111T
+                   {%- elif ansible_host | regex_search('^10.180.112') -%}
+                   SL-180.112-1112T
+                   {%- elif ansible_host | regex_search('^10.180.113') -%}
+                   SL-180.113-1113T
+                   {%- endif -%}
+      ResourcePool: |-
+                   {%- if inventory_hostname | regex_search('d$') -%}
+                   Dev_Server_Pool
+                   {%- elif inventory_hostname | regex_search('s$') -%}
+                   Sand_Server_Pool
+                   {%- elif inventory_hostname | regex_search('i$') -%}
+                   Int_Server_Pool
+                   {%- elif inventory_hostname | regex_search('t$') -%}
+                   Test_Server_Pool
+                   {%- endif -%}
+                    
+  - name: ---- DEBUG ----
+    debug:
+      msg: "{{ Environment }} - {{ Network }} - {{ ResourcePool }}"
+...
